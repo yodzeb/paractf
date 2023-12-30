@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Editor</title>
+    <!-- Include Leaflet CSS and JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <style>
+        #map {
+            height: 95vh;
+        }
+
+        #radius-input {
+            margin-top: 10px;
+        }
+
+        .popup-options {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<div>
+    <label for="game-name">Game Name:</label>
+    <input type="text" id="game-name" />
+</div>
+
+<div>
+    <label for="radius-input">Cylinder Radius:</label>
+    <input type="number" id="radius-input" value="400" />
+</div>
+
+<button onclick="saveGame()">Save Game</button>
+
+<script>
+  var map = L.map('map').setView([45.3045, 5.8698], 13); //    var map = L.map('map').setView([0, 0], 2);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+  var markers = [];
+  moveMode = false;
+  marker_to_move = false;
+  backup_markers = [];
+  current_game = false;
+
+    // Event listener for map click to create cylinders
+  map.on('click', function (e) {
+      if (moveMode) {
+          // If in move mode, update the position of the selected cylinder
+	  marker_to_move.setLatLng(e.latlng);
+	  moveMode = false;
+	  console.log(backup_markers)
+	  for (m of backup_markers) {
+	      console.log("addign")
+	      m.addTo(map)
+	  }
+            // var selectedMarker = getSelectedMarker();
+            // if (selectedMarker) {
+            //     selectedMarker.setLatLng(e.latlng);
+            //     moveMode = false; // Exit move mode after updating position
+            // }
+      } else {
+	  
+        var radius = parseFloat(document.getElementById('radius-input').value);
+
+        var marker = L.circle(e.latlng, radius /*{ radius: radius  /*, draggable: true }*/).addTo(map);
+	marker.setRadius(radius)
+        markers.push(marker);
+
+        // Custom HTML for popup options
+        var popupOptions = document.createElement('div');
+        popupOptions.className = 'popup-options';
+        popupOptions.innerHTML = `
+            <button onclick="editRadius(${markers.length - 1})">Edit Radius</button>
+            <button onclick="startMove(${markers.length - 1})">Move</button>
+            <button onclick="deleteCylinder(${markers.length - 1})">Delete</button>
+        `;
+
+        marker.bindPopup(popupOptions);
+      }
+        // Clear the input field
+        //document.getElementById('radius-input').value = "10";
+    });
+
+    function editRadius(index) {
+        var marker = markers[index];
+        var newRadius = parseFloat(prompt('Enter new radius:', marker.getRadius()));
+        if (!isNaN(newRadius)) {
+            marker.setRadius(newRadius);
+        }
+        marker.closePopup();
+    }
+
+    function startMove(index) {
+        // Enter move mode when the "Move" button is clicked
+	backup_markers = []
+        markers.forEach(function (marker, i) {
+            if (i === index) {
+		marker_to_move = marker
+                marker.closePopup();
+                //marker.dragging.enable();
+            } else {
+		console.log("backing up")
+		console.log(marker)
+                map.removeLayer(marker);
+		backup_markers.push(marker)
+            }
+        });
+
+        map.closePopup();
+        moveMode = true;
+    }
+
+    function getSelectedMarker() {
+        // Find the selected marker in move mode
+        for (var i = 0; i < markers.length; i++) {
+            if (markers[i].dragging.enabled()) {
+                return markers[i];
+            }
+        }
+        return null;
+    }
+
+    function deleteCylinder(index) {
+        var marker = markers[index];
+        map.removeLayer(marker);
+        markers.splice(index, 1);
+    }
+
+    function saveGame() {
+    var gameName = document.getElementById('game-name').value;
+        var cylinders = markers.map(marker => ({
+            latitude: marker.getLatLng().lat,
+            longitude: marker.getLatLng().lng,
+            radius: marker.getRadius()
+        }));
+
+        // Send the game data to the server using fetch
+        fetch('/game'+(current_game ? "/"+current_game.id : ""), {
+            method: (current_game ? "PATCH":'POST') ,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                name: gameName,
+                cylinders: cylinders,
+            }),
+        })
+            .then(response => {
+		if (response.ok) {
+		    response.json().then(body => { current_game = body.game })
+                    console.log('Game saved successfully!');
+		} else {
+                    console.error('Failed to save game:', response.statusText);
+		}
+            })
+            .catch(error => console.error('Error during fetch:', error));
+    }
+</script>
+
+</body>
+</html>

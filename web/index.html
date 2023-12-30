@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CTF Game</title>
+    <!-- Include Leaflet CSS and JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+</head>
+<body>
+
+  <div id="map" style="height: 95vh;"></div>
+  <div id="games-list">
+    <!-- Games will be dynamically added here -->
+  </div>
+
+<script>
+    // Initialize the map
+    var map = L.map('map').setView([0, 0], 2);
+
+    // Load OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Add markers for team members and cylinders
+    // You'll need to fetch data from your backend and update this part accordingly
+
+    // Example marker for team member
+    var teamMemberMarker = L.marker([34.0522, -118.2437]).addTo(map);
+    teamMemberMarker.bindPopup("<b>Player 1</b><br>Team: Red Team");
+
+    // Example marker for cylinder
+    var cylinderMarker = L.circle([34.0522, -118.2437], { radius: 10 }).addTo(map);
+    cylinderMarker.bindPopup("<b>Capture Zone</b><br>Radius: 10 meters");
+
+  // You'll need to dynamically update markers based on real-time data from your backend
+
+  fetch('/game')
+        .then(response => response.json())
+        .then(games => {
+            // Update the HTML with the list of games
+            var gamesListDiv = document.getElementById('games-list');
+            games.forEach(game => {
+                var gameCard = document.createElement('div');
+                gameCard.classList.add('game-card');
+                gameCard.innerHTML = `<strong>${game.name}</strong> (ID: ${game.id})`;
+                gamesListDiv.appendChild(gameCard);
+            });
+        })
+        .catch(error => console.error('Error fetching games:', error));
+  
+     function updateMarkers() {
+        // Fetch team members' locations from the backend
+        fetch('/api/get_team_locations')
+            .then(response => response.json())
+            .then(data => {
+                // Update team member markers on the map based on the received data
+                // For each team member data, update the corresponding marker's location
+            });
+
+        // Fetch cylinders' positions from the backend
+        fetch('/api/get_cylinders')
+            .then(response => response.json())
+            .then(data => {
+                // Update cylinder markers on the map based on the received data
+                // For each cylinder data, update the corresponding marker's position
+            });
+    }
+
+    // Call the updateMarkers function periodically
+    setInterval(updateMarkers, 10000); // Update every 10 seconds
+</script>
+
+</body>
+</html>
