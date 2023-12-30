@@ -58,18 +58,35 @@ def update_game(game_id):
 
     data = request.get_json()
 
-    if 'cylinders' not in data:
-        return jsonify({'error': 'Invalid payload'}), 400
-    game = manager.update_game(game_id, data['cylinders'])
+    game = manager.update_game(game_id, data) #data['cylinders'])
 
     return jsonify({'game': game.to_json(), 'message': 'Game updated successfully'}), 200
 
+# single game
+@app.route('/game/<int:game_id>', methods=['GET'])
+def get_single_game(game_id):
+    g = manager.find_game_by_id(game_id)
+    if g:
+        return jsonify({'game': g.to_json()}), 200
+    else:
+        return jsonify({'message': 'error'}), 400
+    
     
 # List games
 @app.route('/game', methods=['GET'])
 def get_games():
     games = manager.list_games()
     return (games)
+
+# List games
+@app.route('/game/<int:game_id>', methods=['DELETE'])
+def delete_game(game_id):
+    if manager.delete_game(game_id):
+        return jsonify({'message': "ok"}), 200
+    else:
+        return jsonify({'message': "error"}), 500
+
+
 
 # Create a new team
 @app.route('/team/create', methods=['POST'])

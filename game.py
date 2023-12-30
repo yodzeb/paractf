@@ -20,7 +20,7 @@ class GameManager:
 
     def list_games(self):
         games = self.Session.query(Game).all()
-        return [ { 'id': g.id, "name": g.name } for g in games ]
+        return [ g.to_json() for g in games ]
 
     def create_team(self, game_id, name):
         team = Team(name=name, game_id=game_id)
@@ -62,24 +62,39 @@ class GameManager:
     def find_game_by_id(self, game_id):
         return self.Session.query(Game).get(game_id)
 
-    def update_game(self, game_id, cylinders):
+    def update_game(self, game_id, data):
         game = self.find_game_by_id(game_id)
         print (game.id)
         if game is None:
             return jsonify({'error': 'Game not found'}), 404
 
-        for c in game.cylinders:
-            self.Session.delete(c)
-        # Convert JSON data to Cylinder objects
-        new_cylinders = [Cylinder(c['latitude'], c['longitude'], c['radius']) for c in cylinders]
+        if 'cylinders' in data:
+            for c in game.cylinders:
+                self.Session.delete(c)
+            # Convert JSON data to Cylinder objects
+            new_cylinders = [Cylinder(c['latitude'], c['longitude'], c['radius']) for c in data['cylinders']]
 
-        # Update the game's cylinders
-        game.cylinders = new_cylinders
+            # Update the game's cylinders
+            game.cylinders = new_cylinders
+        if 'name' in data:
+            game.name = data['name']
+            
+            
         self.Session.add(game)
         self.Session.commit()
         return game
 
+    def delete_game(self, game_id):
+        game = self.find_game_by_id(game_id)
+        if game is None:
+            return jsonify({'error': 'Game not found'}), 404
 
+        for c in game.cylinders:
+            self.Session.delete(c)
+            
+        self.Session.delete(game)
+        self.Session.commit()
+        return True
 # Usage example:
 # manager = GameManager()
 # game = manager.create_game('CTF Game', altitude_threshold=100)

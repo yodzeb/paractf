@@ -12,7 +12,7 @@ class Game(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String)
     #altitude_threshold = Column(Float)
-    teams = relationship('Team', back_populates='game')
+    #teams = relationship('Team', back_populates='game')
     cylinders = relationship('Cylinder', back_populates='game')
 
     def __init__(self, name, cylinders):
@@ -22,15 +22,25 @@ class Game(Base):
     def to_json(self):
         return {
             'id': self.id,
+            'name': self.name,
             'cylinders': [ c.to_json() for c in self.cylinders ]
         }
+
+class GameInstance(Base):
+    __tablename__ = 'gameinstances'
+    id = Column(Integer, primary_key=True)
+    name    = Column(String)
+    game_id = Column(Integer, ForeignKey('games.id'))
+    start_date = Column(Integer)
+    end_date   = Column(Integer)
+    teams = relationship('Team', back_populates='game')
     
 class Team(Base):
     __tablename__ = 'teams'
     id = Column(Integer, primary_key=True)
     name = Column(String)
-    game_id = Column(Integer, ForeignKey('games.id'))
-    game = relationship('Game', back_populates='teams')
+    game_id = Column(Integer, ForeignKey('gameinstances.id'))
+    game = relationship('GameInstance', back_populates='teams')
     members = relationship('TeamMember', back_populates='team')
 
 class TeamMember(Base):
