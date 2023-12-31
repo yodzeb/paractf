@@ -1,7 +1,7 @@
 # game.py
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from models import Base, Game, Team, TeamMember, Cylinder
+from models import Base, Game, Team, TeamMember, Cylinder, GameInstance
 from sqlalchemy.orm import Session
 
 class GameManager:
@@ -79,7 +79,6 @@ class GameManager:
         if 'name' in data:
             game.name = data['name']
             
-            
         self.Session.add(game)
         self.Session.commit()
         return game
@@ -95,6 +94,20 @@ class GameManager:
         self.Session.delete(game)
         self.Session.commit()
         return True
+
+    def find_igame_by_id(self, igame_id):
+        return self.Session.query(GameInstance).get(igame_id)
+
+    def create_igame(self, name, game_id):
+        game = self.find_game_by_id(game_id)
+        if game:
+            gi = GameInstance(name, game.id)
+            self.Session.add(gi)
+            self.Session.commit()
+            return gi
+        return None
+    
+        
 # Usage example:
 # manager = GameManager()
 # game = manager.create_game('CTF Game', altitude_threshold=100)

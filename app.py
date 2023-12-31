@@ -87,6 +87,24 @@ def delete_game(game_id):
         return jsonify({'message': "error"}), 500
 
 
+# Create game instance
+@app.route('/igame/<int:game_id>', methods=['POST'])
+def create_igame(game_id):
+    data = request.json
+    if 'name' in data:
+        gi = manager.create_igame(data['name'], game_id)
+        if gi:
+            return jsonify({'igame': gi.to_json(), 'message': 'ok'}), 200
+
+    return jsonify({'message': 'nok'}), 500
+
+@app.route('/igame/<int:igame_id>', methods=['GET'])
+def get_igame(igame_id):
+    igame = manager.find_igame_by_id(igame_id)
+    if igame:
+        return jsonify({'igame': igame.to_json(), 'message': 'ok'}), 200
+    else:
+        return jsonify({'message': 'nok'}), 404
 
 # Create a new team
 @app.route('/team/create', methods=['POST'])

@@ -87,7 +87,7 @@
 
                   const goIcon = document.createElement('i');
                   goIcon.className = 'fas fa-plane-departure menuicon';
-                  goIcon.addEventListener('click', () => createIGame(game));
+                  goIcon.addEventListener('click', () => createGame(game));
 		  
                   gameEntry.appendChild(gameName);
                   icons.appendChild(deleteIcon);
@@ -109,27 +109,22 @@
           })
           .catch(error => console.error('Error fetching games:', error));
   }
-  
-  function getCurrentDateTime() {
-      const now = new Date();
-      return `${now.toISOString().slice(0, 16).replace('T', '--')}`;
-  }
-  
-  function createIGame(game) {
 
-      fetch('/igame/'+game.id, {
+  function createGame(game) {
+      
+      fetch('/instance/'+game.id, {
 	  method: 'POST',
 	  headers: {
 	      'Content-Type': 'application/json',
           },
 	  body: JSON.stringify({
-              name: prompt('Enter a name:', "CTF-"+getCurrentDateTime()),
+              name: prompt('Enter a name:', "CTF-XX"),
           }),
         })
 	  .then(response => response.json())
 	  .then(igame => {
 	      if (igame && igame.igame && igame.igame.id) {
-		  window.location = "/static/igame.html#"+igame.igame.id;
+		  window.location = "/igame.html#"+igame.igame.id;
 	      }
 	      else {
 		  alert("Error creating a CTF");
