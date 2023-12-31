@@ -22,12 +22,25 @@ class GameManager:
         games = self.Session.query(Game).all()
         return [ g.to_json() for g in games ]
 
-    def create_team(self, game_id, name):
-        team = Team(name=name, game_id=game_id)
+    def create_team(self, igame_id, name):
+        team = Team(name=name, igame_id=igame_id)
         self.Session.add(team)
         self.Session.commit()
         return team
 
+    def delete_team(self, igame_id, team_id):
+        igame = self.Session.query(GameInstance).get(igame_id)
+        if igame:
+            for t in igame.teams:
+                if t.id == team_id:
+                    self.Session.delete(t)
+                    igame.teams.remove(t)
+                    self.Session.add(igame)
+                    self.Session.commit()
+                    return igame
+        return False
+                    
+    
     def add_team_member(self, team_id, name):
         member = TeamMember(name=name, team_id=team_id)
         self.Session.add(member)
@@ -98,6 +111,23 @@ class GameManager:
     def find_igame_by_id(self, igame_id):
         return self.Session.query(GameInstance).get(igame_id)
 
+
+    def join_igame(self, igame_id, team_id, player_name):
+        print ("BBBBBBBBBB")
+        igame = self.find_igame_by_id(igame_id)
+        if igame:
+            print (igame)
+            for t in igame.teams:
+                if t.id == team_id:
+                    print ("found team")
+                    player = TeamMember(name=player_name, team_id=team_id)
+                    self.Session.add(player)
+                    self.Session.commit()
+                    return player
+        print ("error")
+        return False
+
+    
     def create_igame(self, name, game_id):
         game = self.find_game_by_id(game_id)
         if game:

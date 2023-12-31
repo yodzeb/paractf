@@ -5,6 +5,8 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import func
 import time
+import string
+import random
 
 Base = declarative_base()
 
@@ -35,7 +37,7 @@ class GameInstance(Base):
     game_id = Column(Integer, ForeignKey('games.id'))
     start_date = Column(Integer)
     end_date   = Column(Integer)
-    teams = relationship('Team', back_populates='game')
+    teams = relationship('Team', back_populates='igame')
     game  = relationship('Game')
 
     def __init__(self, name, game_id):
@@ -60,22 +62,41 @@ class Team(Base):
     __tablename__ = 'teams'
     id = Column(Integer, primary_key=True)
     name = Column(String)
-    game_id = Column(Integer, ForeignKey('gameinstances.id'))
-    game = relationship('GameInstance', back_populates='teams')
+    igame_id = Column(Integer, ForeignKey('gameinstances.id'))
+    igame = relationship('GameInstance', back_populates='teams')
     members = relationship('TeamMember', back_populates='team')
 
     def to_json(self):
         return {
             'name': self.name,
+            'id':   self.id,
+            'members': [ m.to_json() for m in self.members ]
         }
 
 class TeamMember(Base):
     __tablename__ = 'teammembers'
     id = Column(Integer, primary_key=True)
     name = Column(String)
+    password = Column(String)
     team_id = Column(Integer, ForeignKey('teams.id'))
     team = relationship('Team', back_populates='members')
     location_history = relationship('LocationHistory', back_populates='member')
+
+    def __init__(self, name, team_id):
+        self.name = name
+        self.team_id = team_id
+        self.password = self.randomword(64);
+
+    def randomword(self, length):
+        letters = string.ascii_lowercase
+        return ''.join(random.choice(letters) for i in range(length))
+        
+    def to_json(self, with_pass=False):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'password': self.password if with_pass else None
+        }
 
 class LocationHistory(Base):
     __tablename__ = 'locationhistory'

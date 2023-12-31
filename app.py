@@ -107,13 +107,38 @@ def get_igame(igame_id):
         return jsonify({'message': 'nok'}), 404
 
 # Create a new team
-@app.route('/team/create', methods=['POST'])
-def create_team():
+@app.route('/igame/<int:igame_id>/team', methods=['POST'])
+def create_team(igame_id):
     data = request.json
-    game_id = data.get('game_id')
+    game_id = data.get('igame_id')
     name = data.get('name')
-    team = manager.create_team(game_id, name)
-    return jsonify({'message': f'Team "{team.name}" created successfully!'}), 201
+    if name and name != "":
+        team = manager.create_team(igame_id, name)
+        return jsonify({'message': f'Team "{team.name}" created successfully!'}), 201
+    else:
+        return jsonify({'message': 'nok'}), 404
+
+# Delete Team
+@app.route('/igame/<int:igame_id>/team/<int:team_id>', methods=['DELETE'])
+def delete_team(igame_id, team_id):
+    igame = manager.delete_team(igame_id, team_id)
+    if igame:
+        return jsonify({'igame': igame.to_json(), 'message':'ok'}), 201
+    else:
+        return jsonify({'message': 'nok'}), 500
+
+# Join a Team
+@app.route('/igame/<int:igame_id>/team/<int:team_id>', methods=['POST'])
+def join_team(igame_id, team_id):
+    print ("AAAAAAAAAAA")
+    data = request.json
+    if data and 'player_name' in data and data['player_name'] != "":
+        player = manager.join_igame(igame_id, team_id, data['player_name'])
+        if player:
+            return jsonify({'player': player.to_json(True), 'message': 'ok' })
+
+    return jsonify({'message': 'nok'}), 500
+
 
 # Add a team member
 @app.route('/team/member/add', methods=['POST'])

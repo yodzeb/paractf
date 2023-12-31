@@ -63,14 +63,6 @@
     </style>
 </head>
 <body>
-    <div id="menu">
-	<div id="game-name"></div>
-	<div id="game-list">
-	    <div id="teams">a</div>
-	</div>
-	
-	<div id="team-control"></div>
-    </div>
 <div id="map"></div>
 
 <script>
@@ -79,7 +71,7 @@
       // Load and display the selected game on the map
       function loadGame(game) {
 	  // Clear existing markers on the map
-	  document.getElementById('game-name').innerHTML = game.name;
+
 	  if (map) {
               markers.forEach(marker => map.removeLayer(marker));
               markers = [];
@@ -98,41 +90,6 @@
 	  });
 
 	  
-	  document.getElementById("teams").innerHTML = "";
-	  game.teams.forEach(t => {
-	      
-	      gameEntry = document.createElement("div");
-	      gameEntry.className = 'game-entry';
-	      
-              const gameName = document.createElement('div');
-	      gameName.textContent = t.name+" ("+t.members.length+")";
-
-	      const icons = document.createElement('div');
-	      icons.className = "menuicons";
-	      
-              const deleteIcon = document.createElement('i');
-              deleteIcon.className = 'fas fa-trash-alt menuicon';
-              deleteIcon.addEventListener('click', () => deleteTeam(t));
-
-              const joinIcon = document.createElement('i');
-              joinIcon.className = 'fas fa-plane-departure menuicon';
-              joinIcon.addEventListener('click', () => joinTeam(t));
-	      
-	      icons.appendChild(deleteIcon);
-	      icons.appendChild(joinIcon);
-	      
-              gameEntry.appendChild(gameName);
-	      gameEntry.appendChild(icons);
-
-	      document.getElementById("teams").appendChild(gameEntry);
-	      });
-	  
-	  b2 = document.createElement('button');
-	  b2.textContent = "New";
-	  b2.addEventListener('click', () => newTeam());
-	  document.getElementById("team-control").innerHTML = "";
-	  document.getElementById("team-control").appendChild(b2);
-
 	  
 
 	  // Fit the map to the bounding box of all cylinders
@@ -145,56 +102,6 @@
 	  }
       }
 
- function joinTeam(t) {
-     fetch('/igame/'+current_game.id+"/team/"+t.id, {
-	 method: "POST",
-	 headers: {
-	     'Content-Type': 'application/json',
-         },
-	 body: JSON.stringify({
-             player_name: prompt('Enter a name:', "Player-"+Math.floor(Math.random() * 1000))
-         }),
-     })
-	 .then(response => response.json())
-	 .then(r => {
-	     console.log(r);
-	     localStorage.setItem("ctf_player_id", r.player.id);
-	     localStorage.setItem("ctf_player_password", r.player.password);
-	     localStorage.setItem("ctf_igame", current_game.id);
-	     window.location = "/static/play.html";
-	 });
- }
- 
- function deleteTeam(t) {
-     fetch('/igame/'+current_game.id+'/team/'+t.id, {
-	 method: 'DELETE',
-	 headers: {
-	     'Content-Type': 'application/json',
-         },
-     })
-	 .then(response => response.json())
-	 .then(team => {
-	     fetchIGameById(current_game.id);
-	 });
- }
- 
- function newTeam() {
-     fetch('/igame/'+current_game.id+'/team', {
-	 method: 'POST',
-	 headers: {
-	     'Content-Type': 'application/json',
-         },
-	 body: JSON.stringify({
-             name: prompt('Enter a name:', "Team-")
-         }),
-     })
-	 .then(response => response.json())
-	 .then(team => {
-	     fetchIGameById(current_game.id);
-	 });
- }
- 
- 
  function fetchIGameById(gameId) {
      fetch('/igame/' + gameId)
               .then(response => response.json())
@@ -209,19 +116,13 @@
               .catch(error => console.error('Error fetching game:', error));
       }
 
- 
- if (window.location.hash) {
-     // Extract the game ID from the hash
-     var gameId = parseInt(window.location.hash.substring(1));
-     
-     // Check if the extracted ID is a valid integer
-     if (!isNaN(gameId)) {
-         // Fetch the game by ID
-         fetchIGameById(gameId);
-     } else {
-         console.error('Invalid game ID in the URL hash:', window.location.hash);
-     }
+ if (localStorage.ctf_player_id && localStorage.ctf_igame && localStorage.ctf_player_password) {
+     fetchIGameById(localStorage.ctf_igame);
  }
+ else {
+     alert("aaaa");
+ }
+     
 
   var map = L.map('map').setView([0, 0], 2);
 
