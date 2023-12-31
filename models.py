@@ -95,7 +95,8 @@ class TeamMember(Base):
         return {
             'id': self.id,
             'name': self.name,
-            'password': self.password if with_pass else None
+            'password': self.password if with_pass else None,
+            'last_position': self.location_history[:1][0].to_json() if self.location_history and len(self.location_history) > 0 else None
         }
 
 class LocationHistory(Base):
@@ -107,6 +108,14 @@ class LocationHistory(Base):
     longitude = Column(Float)
     altitude = Column(Float)
     timestamp = Column(DateTime(timezone=True), server_default=func.now())
+
+    def to_json(self):
+        return {
+            'latitude': self.latitude,
+            'longitude': self.longitude,
+            'altitude': self.altitude,
+            'timestamp': self.timestamp
+        }
 
 class Cylinder(Base):
     __tablename__ = 'cylinders'

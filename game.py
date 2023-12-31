@@ -1,7 +1,7 @@
 # game.py
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from models import Base, Game, Team, TeamMember, Cylinder, GameInstance
+from sqlalchemy.orm import sessionmaker, scoped_session
+from models import Base, Game, Team, TeamMember, Cylinder, GameInstance, LocationHistory
 from sqlalchemy.orm import Session
 
 class GameManager:
@@ -9,7 +9,8 @@ class GameManager:
         #self.session = session
         self.engine = create_engine(db_url)
         Base.metadata.create_all(self.engine)
-        self.Session = sessionmaker(bind=self.engine)()
+        self.s = sessionmaker(bind=self.engine)
+        self.Session = scoped_session(self.s)
         return
 
     def create_game(self, name, cylinders):
@@ -47,24 +48,21 @@ class GameManager:
         self.Session.commit()
         return member
 
-    def update_team_member_location(self, member_id, latitude, longitude, altitude):
+    def update_team_member_location(self, member_id, member_pass, latitude, longitude, altitude):
         member = self.Session.query(TeamMember).get(member_id)
         if member:
-            # Store historical location
-            location = LocationHistory(
-                team_member_id=member.id,
-                latitude=latitude,
-                longitude=longitude,
-                altitude=altitude,
-            )
-            self.Session.add(location)
-
-            # Update current location
-            member.latitude = latitude
-            member.longitude = longitude
-            member.altitude = altitude
-
-            self.Session.commit()
+            if member.password == member_pass:
+                # Store historical location
+                location = LocationHistory(
+                    team_member_id=member.id,
+                    latitude=latitude,
+                    longitude=longitude,
+                    altitude=altitude,
+                )
+                print (location.id)
+                self.Session.add(location)
+                #self.Session.add(member)
+                self.Session.commit()
 
     def create_cylinder(self, game_id, latitude, longitude, radius):
         cylinder = Cylinder(game_id=game_id, latitude=latitude, longitude=longitude, radius=radius)
@@ -113,7 +111,6 @@ class GameManager:
 
 
     def join_igame(self, igame_id, team_id, player_name):
-        print ("BBBBBBBBBB")
         igame = self.find_igame_by_id(igame_id)
         if igame:
             print (igame)
@@ -127,6 +124,8 @@ class GameManager:
         print ("error")
         return False
 
+    def get_all_igames(self):
+        return self.Session.query(GameInstance).all()
     
     def create_igame(self, name, game_id):
         game = self.find_game_by_id(game_id)

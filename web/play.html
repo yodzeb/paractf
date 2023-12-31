@@ -7,7 +7,8 @@
     <!-- Include Leaflet CSS and JS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <!-- Include Font Awesome for icons -->
+
+	<!-- Include Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"  crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         body {
@@ -63,75 +64,154 @@
     </style>
 </head>
 <body>
-<div id="map"></div>
+    <div id="menu"></div>
+    <div id="map"></div>
+    <script src="https://richtr.github.io/NoSleep.js/dist/NoSleep.min.js"></script>
+    <!-- 
+	 <input type="button" id="toggle" value="Wake Lock is disabled" />
 
-<script>
-  // Function to fetch and populate the game list
+	 <script>
+	 var noSleep = new NoSleep();
 
-      // Load and display the selected game on the map
-      function loadGame(game) {
-	  // Clear existing markers on the map
+	 var wakeLockEnabled = false;
+	 var toggleEl = document.querySelector("#toggle");
+	 toggleEl.addEventListener('click', function() {
+         if (!wakeLockEnabled) {
+         noSleep.enable(); // keep the screen on!
+         wakeLockEnabled = true;
+         toggleEl.value = "Wake Lock is enabled";
+         document.body.style.backgroundColor = "green";
+         } else {
+         noSleep.disable(); // let the screen turn off.
+         wakeLockEnabled = false;
+         toggleEl.value = "Wake Lock is disabled";
+         document.body.style.backgroundColor = "";
+         }
+	 }, false);
+	 </script>
+    -->
+    
+    <script>
+     var noSleep = new NoSleep();
+     noSleep.enable();
+     
+     var x = document.getElementById("menu");
+     var y = 0;
+     function showPosition(position) {
+	 console.log(position);
 
-	  if (map) {
-              markers.forEach(marker => map.removeLayer(marker));
-              markers = [];
-	  }
+	 x.innerHTML = "Latitude: " + position.coords.latitude +  "<br>Longitude: " + position.coords.longitude + "<br>Altitude: " + position.coords.altitude + "<br>"+(y++);
 
-	  // Create new markers for the cylinders of the selected game
-	  game.cylinders.forEach(cylinder => {
-              const marker = L.circle([cylinder.latitude, cylinder.longitude], {
-		  radius: cylinder.radius,
-		  color: 'blue',
-		  fillOpacity: 0.4
-              }).addTo(map);
-              markers.push(marker);
-	      marker.__id = cylinder.id;
-	      //create_marker_options(marker);
-	  });
+	 fetch("/player/" + localStorage.ctf_player_id, {
+	     method: "PATCH",
+             headers: {
+                 'Content-Type': 'application/json',
+             },
+             body: JSON.stringify({
+                 game_id: localStorage.ctf_igame,
+                 latitude: position.coords.latitude,
+		 longitude: position.coords.longitude,
+		 altitude: position.coords.altitude,
+		 member_password: localStorage.ctf_player_password
+             }),
+         })
+             .then(response => {
+		 if (response.ok) {
+		     console.log("update ok");
+		 }
+             })
+     }
+     
+     function update_location(){
+	 console.log("update");
+	 if (navigator.geolocation) {
+             navigator.geolocation.getCurrentPosition(showPosition);
+	 } else {
+             x.innerHTML = "Geolocation is not supported by this browser.";
+	 }
+     }
 
-	  
-	  
+     function update_game() {
+	 fetchIGameById(localStorage.ctf_igame);
+     }
+     
+     setInterval(update_location, 5000);
+     setInterval(update_game, 10000);
+     
+     // Load and display the selected game on the map
+     function loadGame(game) {
+	 // Clear existing markers on the map
 
-	  // Fit the map to the bounding box of all cylinders
-	  if (markers.length > 2) {
-	      pad = 100;
-	      if (markers.length == 1)
-		  pad=2;
-              const bounds = new L.LatLngBounds(markers.map(marker => marker.getLatLng()));
-              map.fitBounds(bounds,  { padding: [pad, pad]});
-	  }
-      }
+	 if (map) {
+             markers.forEach(marker => map.removeLayer(marker));
+             markers = [];
+	 }
 
- function fetchIGameById(gameId) {
-     fetch('/igame/' + gameId)
-              .then(response => response.json())
-              .then(game => {
-                  current_game = game.igame;
-		  loadGame(current_game);
-                  // You can now use the 'current_game' variable to access the loaded game data
-                  console.log('Loaded game:', current_game);
-                  // Call a function to initialize your editor with the loaded game
-                  //initializeEditor(current_game);
-              })
-              .catch(error => console.error('Error fetching game:', error));
-      }
+	 // Create new markers for the cylinders of the selected game
+	 game.cylinders.forEach(cylinder => {
+             const marker = L.circle([cylinder.latitude, cylinder.longitude], {
+		 radius: cylinder.radius,
+		 color: 'blue',
+		 fillOpacity: 0.4
+             }).addTo(map);
+             markers.push(marker);
+	     marker.__id = cylinder.id;
+	     //create_marker_options(marker);
+	 });
 
- if (localStorage.ctf_player_id && localStorage.ctf_igame && localStorage.ctf_player_password) {
-     fetchIGameById(localStorage.ctf_igame);
- }
- else {
-     alert("aaaa");
- }
+	 game.teams.forEach(team => {
+	     team.members.forEach(member => {
+		 if (member.last_position) {
+		     const marker = L.circle([member.last_position.latitude, member.last_position.longitude], {
+			 radius: 10,
+			 color: 'red'
+		     }).addTo(map);
+		     markers.push(marker);
+		 }
+	     });
+	 });
+	 
+
+	 // Fit the map to the bounding box of all cylinders
+	 if (markers.length > 2) {
+	     pad = 100;
+	     if (markers.length == 1)
+		 pad=2;
+             const bounds = new L.LatLngBounds(markers.map(marker => marker.getLatLng()));
+             map.fitBounds(bounds,  { padding: [pad, pad]});
+	 }
+     }
+
+     function fetchIGameById(gameId) {
+	 fetch('/igame/' + gameId)
+             .then(response => response.json())
+             .then(game => {
+                 current_game = game.igame;
+		 loadGame(current_game);
+                 // You can now use the 'current_game' variable to access the loaded game data
+                 console.log('Loaded game:', current_game);
+                 // Call a function to initialize your editor with the loaded game
+                 //initializeEditor(current_game);
+             })
+             .catch(error => console.error('Error fetching game:', error));
+     }
+
+     if (localStorage.ctf_player_id && localStorage.ctf_igame && localStorage.ctf_player_password) {
+	 fetchIGameById(localStorage.ctf_igame);
+     }
+     else {
+	 alert("aaaa");
+     }
      
 
-  var map = L.map('map').setView([0, 0], 2);
+     var map = L.map('map').setView([0, 0], 2);
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map);
+     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+	 attribution: '&copy; OpenStreetMap contributors'
+     }).addTo(map);
 
-  var markers = [];
-</script>
+     var markers = [];
+    </script>
 
 </body>
 </html>

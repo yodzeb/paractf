@@ -14,207 +14,276 @@
             display: flex;
             margin: 0;
         }
+     #menu {
+	 width: 20%;
+	 display: block;
+     }
+	 
+         #game-list {
 
-        #game-list {
-            width: 20%;
-            overflow-y: auto;
-            padding: 10px;
-            box-sizing: border-box;
-            background-color: #f0f0f0;
-            cursor: pointer; /* Set the cursor property */
-        }
+             overflow-y: auto;
+             padding: 10px;
+             box-sizing: border-box;
+             background-color: #f0f0f0;
+             cursor: pointer; /* Set the cursor property */
+         }
 
-        .game-entry {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            padding: 4px;
-            border-bottom: 1px solid #ccc;
-        }
+         .game-entry {
+             display: flex;
+             align-items: center;
+             justify-content: space-between;
+             margin-bottom: 8px;
+             padding: 4px;
+             border-bottom: 1px solid #ccc;
+         }
 
-	.menuicons {
-            /* Align the icons to the right */
-            text-align: right;
-	}
-	
-	.menuicons i {
-            margin-left: 8px; /* Add some space between icons */
-	}
-	
-	
-        #map {
-            flex: 1;
-            height: 100vh;
-        }
+	 .menuicons {
+             /* Align the icons to the right */
+             text-align: right;
+	 }
+	 
+	 .menuicons i {
+             margin-left: 8px; /* Add some space between icons */
+	 }
+	 
+	 
+         #map {
+             flex: 1;
+             height: 100vh;
+         }
     </style>
 </head>
 <body>
 
-<div id="game-list"></div>
-<div id="map"></div>
+    <div id="menu">
+	<div id="game-list"></div>
+	<div id="igame-list"></div>
+	<div id="warning"></div>
+    </div>
+    <div id="map"></div>
 
-<script>
-  // Function to fetch and populate the game list
-  function fetchAndPopulateGames() {
-      fetch('/game')
-          .then(response => response.json())
-	  .then(games => {
-	      const gameList = document.getElementById('game-list');
-	      gameList.innerHTML = ''; // Clear existing entries
-	      
-	      games.forEach(game => {
-		  const gameEntry = document.createElement('div');
-		  gameEntry.className = 'game-entry';
+    <script>
 
-                  // Game name
-                  const gameName = document.createElement('div');
-		  gameName.textContent = game.name;
-		  gameName.addEventListener("click", () => loadGame(game));
+     if (localStorage.ctf_player_id && localStorage.ctf_igame && localStorage.ctf_player_password) {
+	document.getElementById("warning").innerHTML = '<a href="play.html">Rejoin !</a>';
+     }
+     
+     // Function to fetch and populate the game list
+     function fetchAndPopulateIGames() {
+	 fetch('/igame')
+	     .then(response => response.json())
+	     .then(igames => {
+		 console.log("got response");
+		 console.log(igames)
+		 const gameList = document.getElementById('igame-list');
+		 gameList.innerHTML = ''; // Clear existing entries
+		 
+		 title = document.createElement('div');
+		 title.textContent = "CTF en cours";
+		 gameList.appendChild(title)
 
-                  // Delete icon
-		  const icons = document.createElement('div');
-		  icons.className = "menuicons";
-		  
-                  const deleteIcon = document.createElement('i');
-                  deleteIcon.className = 'fas fa-trash-alt menuicon';
-                  deleteIcon.addEventListener('click', () => deleteGame(game));
+		 igames.igames.forEach(game => {
+		     const gameEntry = document.createElement('div');
+		     gameEntry.className = 'game-entry';
 
-                  // Edit icon
-                  const editIcon = document.createElement('i');
-                  editIcon.className = 'fas fa-edit menuicon';
-                  editIcon.addEventListener('click', () => editGame(game));
+                     const gameName = document.createElement('div');
+		     gameName.textContent = game.name;
+		     gameName.addEventListener("click", () => loadGame(game));
 
-                  const goIcon = document.createElement('i');
-                  goIcon.className = 'fas fa-plane-departure menuicon';
-                  goIcon.addEventListener('click', () => createIGame(game));
-		  
-                  gameEntry.appendChild(gameName);
-                  icons.appendChild(deleteIcon);
-		  icons.appendChild(editIcon);
-		  icons.appendChild(goIcon);
-		  gameEntry.appendChild(icons);
-                  gameList.appendChild(gameEntry);
-              });
-	      b1 = document.createElement('button');
-	      b1.textContent = "Refresh";
-	      b1.addEventListener('click', () => fetchAndPopulateGames());
+                     // Delete icon
+		     const icons = document.createElement('div');
+		     icons.className = "menuicons";
+		     
+                     const deleteIcon = document.createElement('i');
+                     deleteIcon.className = 'fas fa-trash-alt menuicon';
+                     deleteIcon.addEventListener('click', () => deleteIGame(game));
 
-	      b2 = document.createElement('button');
-	      b2.textContent = "New";
-	      b2.addEventListener('click', () => newGame());
-	      
-	      gameList.appendChild(b1);
-	      gameList.appendChild(b2);
-          })
-          .catch(error => console.error('Error fetching games:', error));
-  }
-  
-  function getCurrentDateTime() {
-      const now = new Date();
-      return `${now.toISOString().slice(0, 16).replace('T', '--')}`;
-  }
-  
-  function createIGame(game) {
+                     const goIcon = document.createElement('i');
+                     goIcon.className = 'fas fa-plane-departure menuicon';
+                     goIcon.addEventListener('click', () => joinIGame(game));
 
-      fetch('/igame/'+game.id, {
-	  method: 'POST',
-	  headers: {
-	      'Content-Type': 'application/json',
-          },
-	  body: JSON.stringify({
-              name: prompt('Enter a name:', "CTF-"+getCurrentDateTime()),
-          }),
-        })
-	  .then(response => response.json())
-	  .then(igame => {
-	      if (igame && igame.igame && igame.igame.id) {
-		  window.location = "/static/igame.html#"+igame.igame.id;
-	      }
-	      else {
-		  alert("Error creating a CTF");
-	      }
-	  }
-	       );
-      
-  }
-  
-  // Function to delete a game (you can implement this)
-  function deleteGame(game) {
-      // Implement the delete game functionality
-      console.log('Delete game:', game);
-      fetch('/game/'+game.id, {
-            method: 'DELETE' ,
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        })
-            .then(response => {
-		if (response.ok) {
-		    response.json().then(body => { current_game = body.game })
-                    console.log('Game deleted successfully!');
-		} else {
-                    console.error('Failed to save game:', response.statusText);
-		}
-		
-		// After deletion, refresh the game list
-		fetchAndPopulateGames();
-            })
-            .catch(error => console.error('Error during fetch:', error));
-      
-  }
+                     gameEntry.appendChild(gameName);
+                     icons.appendChild(deleteIcon);
+		     icons.appendChild(goIcon);
+		     gameEntry.appendChild(icons);
+                     gameList.appendChild(gameEntry);
+		     
+		 });
+	     });
+     }
 
-  // Function to edit a game (you can implement this)
-  function editGame(game) {
-      // Implement the edit game functionality
-      window.location = '/static/editor.html#'+game.id;
-      console.log('Edit game:', game);
-      // After editing, refresh the game list
-      fetchAndPopulateGames();
-  }
+     function deleteIGame(game) {
+	 
+     }
 
-  function newGame() {
-      window.location='/static/editor.html';
-  }
-  
-  // Load and display the selected game on the map
-  function loadGame(game) {
-      // Clear existing markers on the map
-      if (map) {
-          markers.forEach(marker => map.removeLayer(marker));
-          markers = [];
-      }
+     function joinIGame(game) {
+	 window.location = "/static/igame.html#"+game.id;
+     }
+     
+     function fetchAndPopulateGames() {
+	 fetch('/game')
+             .then(response => response.json())
+	     .then(games => {
+		 const gameList = document.getElementById('game-list');
+		 gameList.innerHTML = ''; // Clear existing entries
 
-      // Create new markers for the cylinders of the selected game
-      game.cylinders.forEach(cylinder => {
-          const marker = L.circle([cylinder.latitude, cylinder.longitude], {
-              radius: cylinder.radius,
-              color: 'blue',
-              fillOpacity: 0.4
-          }).addTo(map);
-          markers.push(marker);
-      });
+		 title = document.createElement('div');
+		 title.textContent = "Modeles";
+		 gameList.appendChild(title)
+		 
+		 games.forEach(game => {
+		     const gameEntry = document.createElement('div');
+		     gameEntry.className = 'game-entry';
 
-      // Fit the map to the bounding box of all cylinders
-      if (markers.length > 0) {
-	  pad = 100;
+                     // Game name
+                     const gameName = document.createElement('div');
+		     gameName.textContent = game.name;
+		     gameName.addEventListener("click", () => loadGame(game));
 
-          const bounds = new L.LatLngBounds(markers.map(marker => marker.getLatLng()));
-          map.fitBounds(bounds, { padding: [pad, pad]});
-      }
-  }
+                     // Delete icon
+		     const icons = document.createElement('div');
+		     icons.className = "menuicons";
+		     
+                     const deleteIcon = document.createElement('i');
+                     deleteIcon.className = 'fas fa-trash-alt menuicon';
+                     deleteIcon.addEventListener('click', () => deleteGame(game));
 
-  var map = L.map('map').setView([0, 0], 2);
+                     // Edit icon
+                     const editIcon = document.createElement('i');
+                     editIcon.className = 'fas fa-edit menuicon';
+                     editIcon.addEventListener('click', () => editGame(game));
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map);
+                     const goIcon = document.createElement('i');
+                     goIcon.className = 'fas fa-plane-departure menuicon';
+                     goIcon.addEventListener('click', () => createIGame(game));
+		     
+                     gameEntry.appendChild(gameName);
+                     icons.appendChild(deleteIcon);
+		     icons.appendChild(editIcon);
+		     icons.appendChild(goIcon);
+		     gameEntry.appendChild(icons);
+                     gameList.appendChild(gameEntry);
+		 });
+		 b1 = document.createElement('button');
+		 b1.textContent = "Refresh";
+		 b1.addEventListener('click', () => fetchAndPopulateGames());
 
-  var markers = [];
+		 b2 = document.createElement('button');
+		 b2.textContent = "New";
+		 b2.addEventListener('click', () => newGame());
+		 
+		 gameList.appendChild(b1);
+		 gameList.appendChild(b2);
+             })
+             .catch(error => console.error('Error fetching games:', error));
+     }
+     
+     function getCurrentDateTime() {
+	 const now = new Date();
+	 return `${now.toISOString().slice(0, 16).replace('T', '--')}`;
+     }
+     
+     function createIGame(game) {
 
-  // Initial fetch and populate
-  fetchAndPopulateGames();
-</script>
+	 fetch('/igame/'+game.id, {
+	     method: 'POST',
+	     headers: {
+		 'Content-Type': 'application/json',
+             },
+	     body: JSON.stringify({
+		 name: prompt('Enter a name:', "CTF-"+getCurrentDateTime()),
+             }),
+         })
+	     .then(response => response.json())
+	     .then(igame => {
+		 if (igame && igame.igame && igame.igame.id) {
+		     window.location = "/static/igame.html#"+igame.igame.id;
+		 }
+		 else {
+		     alert("Error creating a CTF");
+		 }
+	     }
+	     );
+	 
+     }
+     
+     // Function to delete a game (you can implement this)
+     function deleteGame(game) {
+	 // Implement the delete game functionality
+	 console.log('Delete game:', game);
+	 fetch('/game/'+game.id, {
+             method: 'DELETE' ,
+             headers: {
+                 'Content-Type': 'application/json',
+             }
+         })
+             .then(response => {
+		 if (response.ok) {
+		     response.json().then(body => { current_game = body.game })
+                     console.log('Game deleted successfully!');
+		 } else {
+                     console.error('Failed to save game:', response.statusText);
+		 }
+		 
+		 // After deletion, refresh the game list
+		 fetchAndPopulateGames();
+             })
+             .catch(error => console.error('Error during fetch:', error));
+	 
+     }
+
+     // Function to edit a game (you can implement this)
+     function editGame(game) {
+	 // Implement the edit game functionality
+	 window.location = '/static/editor.html#'+game.id;
+	 console.log('Edit game:', game);
+	 // After editing, refresh the game list
+	 fetchAndPopulateGames();
+     }
+
+     function newGame() {
+	 window.location='/static/editor.html';
+     }
+     
+     // Load and display the selected game on the map
+     function loadGame(game) {
+	 // Clear existing markers on the map
+	 if (map) {
+             markers.forEach(marker => map.removeLayer(marker));
+             markers = [];
+	 }
+
+	 // Create new markers for the cylinders of the selected game
+	 game.cylinders.forEach(cylinder => {
+             const marker = L.circle([cylinder.latitude, cylinder.longitude], {
+		 radius: cylinder.radius,
+		 color: 'blue',
+		 fillOpacity: 0.4
+             }).addTo(map);
+             markers.push(marker);
+	 });
+
+	 // Fit the map to the bounding box of all cylinders
+	 if (markers.length > 0) {
+	     pad = 100;
+
+             const bounds = new L.LatLngBounds(markers.map(marker => marker.getLatLng()));
+             map.fitBounds(bounds, { padding: [pad, pad]});
+	 }
+     }
+
+     var map = L.map('map').setView([0, 0], 2);
+
+     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+	 attribution: '&copy; OpenStreetMap contributors'
+     }).addTo(map);
+
+     var markers = [];
+
+     // Initial fetch and populate
+     fetchAndPopulateGames();
+     fetchAndPopulateIGames();
+    </script>
 
 </body>
 </html>

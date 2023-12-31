@@ -98,6 +98,15 @@ def create_igame(game_id):
 
     return jsonify({'message': 'nok'}), 500
 
+# get all igames
+@app.route("/igame", methods=['GET'])
+def get_igames():
+    igames = manager.get_all_igames()
+    if igames:
+        return jsonify({"igames": [ g.to_json() for g in igames ], 'message': 'ok' })
+    else:
+        return jsonify({'message': 'nok'}), 500
+
 @app.route('/igame/<int:igame_id>', methods=['GET'])
 def get_igame(igame_id):
     igame = manager.find_igame_by_id(igame_id)
@@ -150,14 +159,14 @@ def add_team_member():
     return jsonify({'message': f'Member "{member.name}" added successfully to the team!'}), 201
 
 # Update team member location
-@app.route('/team/member/update_location', methods=['POST'])
-def update_team_member_location():
+@app.route('/player/<int:player_id>', methods=['PATCH'])
+def update_team_member_location(player_id):
     data = request.json
-    member_id = data.get('member_id')
+    member_pass = data.get('member_password')
     latitude = data.get('latitude')
     longitude = data.get('longitude')
     altitude = data.get('altitude')
-    manager.update_team_member_location(member_id, latitude, longitude, altitude)
+    manager.update_team_member_location(player_id, member_pass, latitude, longitude, altitude)
     return jsonify({'message': f'Team member location updated successfully!'}), 200
 
 # Create a new cylinder
