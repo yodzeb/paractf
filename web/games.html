@@ -10,49 +10,7 @@
     <!-- Include Font Awesome for icons -->
     <link rel="manifest"   href="/manifest.json" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"  crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <style>
-        body {
-            display: flex;
-            margin: 0;
-        }
-     #menu {
-	 width: 20%;
-	 display: block;
-     }
-	 
-         #game-list {
-
-             overflow-y: auto;
-             padding: 10px;
-             box-sizing: border-box;
-             background-color: #f0f0f0;
-             cursor: pointer; /* Set the cursor property */
-         }
-
-         .game-entry {
-             display: flex;
-             align-items: center;
-             justify-content: space-between;
-             margin-bottom: 8px;
-             padding: 4px;
-             border-bottom: 1px solid #ccc;
-         }
-
-	 .menuicons {
-             /* Align the icons to the right */
-             text-align: right;
-	 }
-	 
-	 .menuicons i {
-             margin-left: 8px; /* Add some space between icons */
-	 }
-	 
-	 
-         #map {
-             flex: 1;
-             height: 100vh;
-         }
-    </style>
+    <link rel="stylesheet" href="paractf.css"/>
 </head>
 <body>
     
@@ -124,6 +82,11 @@
 		 });
 	 }
 
+      function refresh_all() {
+	  fetchAndPopulateIGames();
+	  fetchAndPopulateGames();
+      }
+      
 	 function joinIGame(game) {
 	     window.location = "/static/igame.html#"+game.id;
 	 }
@@ -134,9 +97,14 @@
 		 .then(games => {
 		     const gameList = document.getElementById('game-list');
 		     gameList.innerHTML = ''; // Clear existing entries
-
+		     b1 = document.createElement('button');
+		     b1.textContent = "Refresh All";
+		     b1.addEventListener('click', () => refresh_all());
+		     gameList.appendChild(b1);
+		     
 		     title = document.createElement('div');
 		     title.textContent = "Modeles";
+		     title.style.fontWeight = "bold"
 		     gameList.appendChild(title)
 		     
 		     games.forEach(game => {
@@ -172,15 +140,12 @@
 			 gameEntry.appendChild(icons);
 			 gameList.appendChild(gameEntry);
 		     });
-		     b1 = document.createElement('button');
-		     b1.textContent = "Refresh";
-		     b1.addEventListener('click', () => fetchAndPopulateGames());
 
 		     b2 = document.createElement('button');
 		     b2.textContent = "New";
 		     b2.addEventListener('click', () => newGame());
 		     
-		     gameList.appendChild(b1);
+
 		     gameList.appendChild(b2);
 		 })
 		 .catch(error => console.error('Error fetching games:', error));

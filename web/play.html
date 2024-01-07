@@ -10,86 +10,20 @@
 
 	<!-- Include Font Awesome for icons -->
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"  crossorigin="anonymous" referrerpolicy="no-referrer" />
-	<style>
-         body {
-             display: flex;
-             margin: 0;
-         }
-
-
-	 .my-label {
-	     position: absolute;
-	     //width:50px;
-	     align:top;
-	     //height: 5px;
-	     font-size:10px;
-	     opacity: 0.5;
-	 }
-
-	 .my-label-italic {
-	     position: absolute;
-	     //width:50px;
-	     font-style: italic;
-	     align:top;
-	     //height: 5px;
-	     font-size:10px;
-	     opacity: 0.5;
-	 }
-
-	 
-         #game-list {
-
-             overflow-y: auto;
-             padding: 10px;
-             box-sizing: border-box;
-             background-color: #f0f0f0;
-             cursor: pointer; /* Set the cursor property */
-         }
-
-	 #menu {
-	     display: block;
-	     width: 25%;
-	 }
-	 
-	 #game-name {
-	     display: flex;
-             overflow-y: auto;
-             padding: 10px;
-             box-sizing: border-box;
-             background-color: #f0f0f0;
-	 }
-
-	 .game-entry {
-             display: flex;
-             align-items: center;
-             justify-content: space-between;
-             margin-bottom: 8px;
-             padding: 4px;
-             border-bottom: 1px solid #ccc;
-	 }
-
-	 .menuicons {
-             /* Align the icons to the right */
-             text-align: right;
-	 }
-	 
-	 .menuicons i {
-             margin-left: 8px; /* Add some space between icons */
-	 }
-	 
-	 
-         #map {
-             flex: 1;
-             height: 100vh;
-         }
-	</style>
+    <link rel="stylesheet" href="paractf.css"/>
     </head>
     <body>
-	<div id="menu">
+      <button onclick="toggle_menu()" id="fixedButton">&lt;&gt;</button>
+      <div id="menu">
 	    <div id="infos"></div>
 	    <div id="other">
 		<div id="cheat-infos"></div>
-		<button onclick="toggle_cheat()" id="cheat-button">Cheat mode disabled</button>
+		<div if="controls">
+		  <div><button onclick="toggle_cheat()" id="cheat-button">Cheat mode disabled</button></div>
+		  <div><button onclick="toggle_autozoom()" id="zoom-button">AutoZoom enabled</button></div>
+		  <div><button onclick="leave()" id="zoom-button">QUIT</button></div>
+
+		</div>
 	    </div>
 	</div>
 	<div id="map"></div>
@@ -105,16 +39,40 @@
 	 var x = document.getElementById("infos");
 	 var y = 0;
 	  var cheat_mode = false;
+	  var auto_zoom = true;
 	  var my_player_name = "";
+	  var menu = true
 
+	  function toggle_menu(){
+	      if (menu) {
+		  document.getElementById("menu").style.width="0%";
+		  document.getElementById("fixedButton").style.left="0%";
+	      }
+	      else {
+		  document.getElementById("menu").style.width="25%";
+		  document.getElementById("fixedButton").style.left="24%";
+	      }
+	      menu = !menu;
+	  }
+	  
+	  function leave() {
+	      window.location = "/static/games.html";
+	  }
+	  
 	 function toggle_cheat() {
 	     cheat_mode = !cheat_mode;
-	     update_cheat()
+	     update_button('cheat-button', 'Cheat mode ', cheat_mode);
 	 }
 
-	 function update_cheat() {
-	     document.getElementById("cheat-infos").textContent = cheat_pos;
-	     document.getElementById("cheat-button").textContent = "Cheat mode "+(cheat_mode?"enabled":"disabled");
+	  function toggle_autozoom() {
+	      auto_zoom = !auto_zoom;
+	      console.log("aaa");
+	      update_button("zoom-button", "AutoZoom ", auto_zoom)
+	  }
+
+	  function update_button(id, txt, value) {
+	     //document.getElementById("cheat-infos").textContent = cheat_pos;
+	     document.getElementById(id).textContent = txt+(value?"enabled":"disabled");
 	 }
 	 
 	 function showPosition(position) {
@@ -130,33 +88,35 @@
 
 	  function send_pos(to_send_lat, to_send_lng, to_send_alt, accu) {
 	      
-	     x.innerHTML = "Latitude: " + to_send_lat +  "<br>Longitude: " + to_send_lng + "<br>Altitude: " + to_send_alt + "<br>Accuracy: "+accu;
-	     x.innerHTML += "<br>IGame ID: "+current_game.id;
-	     x.innerHTML += "<br>IGame Name: "+current_game.name;
-	     x.innerHTML += "<br>My name:" + my_player_name;
-	     x.innerHTML += "<br>Players:<br>";
-	     
-	     current_game.teams.forEach(t => {
-		 ts = false
-		 if (global_score) {
-		     for (s in global_score) {
-			 if ( s == t.id ) {
-			     ts = " ("+Math.round(global_score[s])+" pts)";
-			 }
-		     }
-		 }
+	      //x.innerHTML = "Latitude: " + to_send_lat +  "<br>Longitude: " + to_send_lng + "<br>Altitude: " + to_send_alt + "<br>Accuracy: "+accu;
+	      x.innerHTML = "";
+	      x.innerHTML += "<br>"+current_game.name+" (ID: "+current_game.id+")";
+	      x.innerHTML += "<br><b>"+current_game.status+"</b>"
+	      
+	      current_game.teams.forEach(t => {
+		  ts = false
+		  if (global_score) {
+		      for (s in global_score) {
+			  if ( s == t.id ) {
+			      ts = " ("+Math.round(global_score[s])+" pts)";
+			  }
+		      }
+		  }
 
-		 x.innerHTML += "<br><div style='background-color: #"+t.color+"'>Team "+t.name+ (ts?ts:"");
-		 t.members.forEach(m => {
+		  x.innerHTML += "<br><div style='background-color: #"+t.color+"'>Team "+t.name+ (ts?ts:"");
+		  t.members.forEach(m => {
 
-		     if (m.id == localStorage.ctf_player_id){
-			 my_player_name = m.name;
-		     }
+		      if (m.id == localStorage.ctf_player_id){
+			  my_player_name = m.name;
+			  x.innerHTML += "<div>- <b>"+m.name+"</b></div>";
+		      }
 
-		     x.innerHTML += "<div>- "+m.name+"</div>";
-		 });
-		 x.innerHTML += "</div>";
-	     });
+		      else {
+			  x.innerHTML += "<div>- "+m.name+"</div>";
+		      }
+		  });
+		  x.innerHTML += "</div>";
+	      });
 
 	      fetch("/player/" + localStorage.ctf_player_id, {
 		  method: "PATCH",
@@ -190,7 +150,7 @@
 		 console.log("sending Cheats");
 		 to_send_lat = cheat_pos.lat;
 		 to_send_lng = cheat_pos.lng;
-		 to_send_alt = 0;
+		 to_send_alt = 200;
 		 send_pos(to_send_lat, to_send_lng, to_send_alt, "CHEAT MODE");
 	     }
 	     else {
@@ -224,12 +184,10 @@
 		 if (current_score) {
 		     current_score.forEach(s => {
 			 if (s.cylinder_id == cylinder.id && s.valid_team) {
-			     console.log("found a valid! ");
 			     def_color = '#'+s.valid_color;
 			 }
 		     })
 		 }
-		 console.log("col:" +def_color)
 		 marker = L.circle([cylinder.latitude, cylinder.longitude], {
 		     radius: cylinder.radius,
 		     color: def_color,
@@ -244,13 +202,10 @@
 		 team.members.forEach(member => {
 		     if (member.last_position) {
 			 style = "my-label";
-			 console.log(member.name);
-			 console.log(member.last_position.timestamp );
+			 alti = ( member.last_position.altitude != null ? " ("+Math.floor(member.last_position.altitude)+")":"")
 			 offset = new Date(member.last_position.timestamp).getTimezoneOffset();
 			 diff = ((Date.now()) - new Date((member.last_position.timestamp-(offset*60)) * 1000))/1000;
-			 console.log();
 			 if (diff > 60) {
-			     console.log("italic !");
 			     style = "my-label-italic";
 			 }
 			 if (diff < 900) {
@@ -258,7 +213,7 @@
 				 radius: 30,
 				 color: 'red'
 			     }).addTo(map);
-			     marker.bindTooltip("["+team.name+"] "+member.name, {permanent: true, className: style, offset: [0, 0] });
+			     marker.bindTooltip("["+team.name+"] "+member.name+alti, {permanent: true, className: style, offset: [0, 0] });
 			     markers.push(marker);
 			 }
 		     }
@@ -266,13 +221,15 @@
 	     });
 	     
 
-	     // Fit the map to the bounding box of all cylinders
-	     if (markers.length > 2) {
-		 pad = 20;
-		 if (markers.length == 1)
-		     pad=2;
-		 const bounds = new L.LatLngBounds(markers.map(marker => marker.getLatLng()));
-		 map.fitBounds(bounds,  { padding: [pad, pad]});
+	     if (auto_zoom) {
+		 // Fit the map to the bounding box of all cylinders
+		 if (markers.length > 2) {
+		     pad = 20;
+		     if (markers.length == 1)
+			 pad=2;
+		     const bounds = new L.LatLngBounds(markers.map(marker => marker.getLatLng()));
+		     map.fitBounds(bounds,  { padding: [pad, pad]});
+		 }
 	     }
 	 }
 
@@ -306,16 +263,19 @@
 	 map.on('click', function (e) {
 	     if (cheat_mode) {
 		 cheat_pos = e.latlng;
-		 update_cheat();
+		 update_location();
 	     }
 	 });
 	 
 
-	 
-	 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+	  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+	      //attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community'
+	  }).addTo(map);	 
+/*
+	  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 	     attribution: '&copy; OpenStreetMap contributors'
 	 }).addTo(map);
-	 
+*/	 
 	 var markers = [];
 	</script>
 

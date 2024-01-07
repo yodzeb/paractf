@@ -52,11 +52,11 @@ class GameInstance(Base):
         self.scoring = 'trad'
 
     def to_json(self):
-        status = "Not started!"
+        status = "<fontcolor='orange'>Not started!</font>"
         if datetime.utcnow() > self.start_date:
-            status = "Game is on!"
+            status = "<font color='green'>Game is on!</font>"
             if datetime.utcnow() > self.end_date:
-                status = "Game is over!"
+                status = "<font color='red'>Game is over!</font>"
         return {
             'id': self.id,
             'scoring_system': self.scoring,
