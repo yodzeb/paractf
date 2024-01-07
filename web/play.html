@@ -48,7 +48,7 @@
 
 	 #menu {
 	     display: block;
-	     width: 20%;
+	     width: 25%;
 	 }
 	 
 	 #game-name {
@@ -99,6 +99,7 @@
 	 var noSleep = new NoSleep();
 	  var cheat_pos = false;
 	  var current_score = false;
+	  var global_score = false;
 	 noSleep.enable();
 	 
 	 var x = document.getElementById("infos");
@@ -119,14 +120,33 @@
 	 function showPosition(position) {
 	     console.log(position);
 
-	     x.innerHTML = "Latitude: " + position.coords.latitude +  "<br>Longitude: " + position.coords.longitude + "<br>Altitude: " + position.coords.altitude + "<br>"+(y++);
+	     var to_send_lat = position.coords.latitude;
+	     var to_send_lng = position.coords.longitude;
+	     var to_send_alt = position.coords.altitude;
+	     var accuracy    = position.coords.accuracy;
+	     
+	     send_pos(to_send_lat, to_send_lng, to_send_alt);
+	 }
+
+	  function send_pos(to_send_lat, to_send_lng, to_send_alt, accu) {
+	      
+	     x.innerHTML = "Latitude: " + to_send_lat +  "<br>Longitude: " + to_send_lng + "<br>Altitude: " + to_send_alt + "<br>Accuracy: "+accu;
 	     x.innerHTML += "<br>IGame ID: "+current_game.id;
 	     x.innerHTML += "<br>IGame Name: "+current_game.name;
 	     x.innerHTML += "<br>My name:" + my_player_name;
 	     x.innerHTML += "<br>Players:<br>";
 	     
 	     current_game.teams.forEach(t => {
-		 x.innerHTML += "<br><div style='background-color: #"+t.color+"'>Team "+t.name;
+		 ts = false
+		 if (global_score) {
+		     for (s in global_score) {
+			 if ( s == t.id ) {
+			     ts = " ("+Math.round(global_score[s])+" pts)";
+			 }
+		     }
+		 }
+
+		 x.innerHTML += "<br><div style='background-color: #"+t.color+"'>Team "+t.name+ (ts?ts:"");
 		 t.members.forEach(m => {
 
 		     if (m.id == localStorage.ctf_player_id){
@@ -138,41 +158,47 @@
 		 x.innerHTML += "</div>";
 	     });
 
-	     var to_send_lat = position.coords.latitude;
-	     var to_send_lng = position.coords.longitude;
-	     
+	      fetch("/player/" + localStorage.ctf_player_id, {
+		  method: "PATCH",
+		  headers: {
+		      'Content-Type': 'application/json',
+		  },
+		  body: JSON.stringify({
+		      game_id: localStorage.ctf_igame,
+		      latitude: to_send_lat,
+		      longitude: to_send_lng,
+		      altitude: to_send_alt,
+		      member_password: localStorage.ctf_player_password
+		  }),
+	      })
+		  .then(response => {
+		      if (response.ok) {
+			  console.log("update ok");
+		      }
+		  })
+	  }
+
+	  function pos_error(err) {
+	      console.log("Error");
+	      alert("error");
+	      console.log(err);
+	  }
+	  
+	 function update_location(){
+	     console.log("update");
 	     if (cheat_mode && cheat_pos) {
 		 console.log("sending Cheats");
 		 to_send_lat = cheat_pos.lat;
 		 to_send_lng = cheat_pos.lng;
+		 to_send_alt = 0;
+		 send_pos(to_send_lat, to_send_lng, to_send_alt, "CHEAT MODE");
 	     }
-	     
-	     fetch("/player/" + localStorage.ctf_player_id, {
-		 method: "PATCH",
-		 headers: {
-		     'Content-Type': 'application/json',
-		 },
-		 body: JSON.stringify({
-		     game_id: localStorage.ctf_igame,
-		     latitude: to_send_lat,
-		     longitude: to_send_lng,
-		     altitude: position.coords.altitude,
-		     member_password: localStorage.ctf_player_password
-		 }),
-	     })
-		 .then(response => {
-		     if (response.ok) {
-			 console.log("update ok");
-		     }
-		 })
-	 }
-	 
-	 function update_location(){
-	     console.log("update");
-	     if (navigator.geolocation) {
-		 navigator.geolocation.getCurrentPosition(showPosition);
-	     } else {
-		 x.innerHTML = "Geolocation is not supported by this browser.";
+	     else {
+		 if (navigator.geolocation) {
+		     navigator.geolocation.getCurrentPosition(showPosition, pos_error, { enableHighAccuracy: true });
+		 } else {
+		     x.innerHTML = "Geolocation is not supported by this browser.";
+		 }
 	     }
 	 }
 
@@ -255,7 +281,8 @@
 		 .then(response => response.json())
 		 .then(game => {
 		     current_game = game.igame;
-		     current_score = game.score;
+		     current_score = game.latest_score;
+		     global_score  = game.score;
 		     loadGame(current_game);
 		     // You can now use the 'current_game' variable to access the loaded game data
 		     console.log('Loaded game:', current_game);

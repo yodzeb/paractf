@@ -111,7 +111,7 @@ def get_igames():
 def get_igame(igame_id):
     igame = manager.find_igame_by_id(igame_id)
     if igame:
-        return jsonify({'igame': igame.to_json(), 'score': manager.score_igame(igame.id), 'message': 'ok'}), 200
+        return jsonify({'igame': igame.to_json(), 'latest_score': manager.score_igame(igame.id), 'score': manager.score_igame_total(igame.id), 'message': 'ok'}), 200
     else:
         return jsonify({'message': 'nok'}), 404
 

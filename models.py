@@ -7,6 +7,7 @@ from sqlalchemy.sql import func
 import time
 import string
 import random
+from datetime import datetime, timedelta
 
 Base = declarative_base()
 
@@ -35,8 +36,8 @@ class GameInstance(Base):
     name     = Column(String)
     password = Column(String)
     game_id = Column(Integer, ForeignKey('games.id'))
-    start_date = Column(Integer)
-    end_date   = Column(Integer)
+    start_date = Column(DateTime(timezone=False))
+    end_date   = Column(DateTime(timezone=False))
     teams = relationship('Team', back_populates='igame')
     game  = relationship('Game')
     scoring = Column(String)
@@ -46,18 +47,26 @@ class GameInstance(Base):
         self.teams = []
         self.password = None
         self.game_id = game_id
-        self.start_date = time.time()
+        self.start_date = datetime.utcnow()
+        self.end_date   = datetime.utcnow() + timedelta(hours=3)
         self.scoring = 'trad'
 
     def to_json(self):
+        status = "Not started!"
+        if datetime.utcnow() > self.start_date:
+            status = "Game is on!"
+            if datetime.utcnow() > self.end_date:
+                status = "Game is over!"
         return {
             'id': self.id,
+            'scoring_system': self.scoring,
             'name': self.name,
             'game_id': self.game_id,
             'start_date': self.start_date,
             'end_date': self.end_date,
             'teams': [ t.to_json() for t in self.teams ],
-            'cylinders': [ c.to_json() for c in self.game.cylinders ]
+            'cylinders': [ c.to_json() for c in self.game.cylinders ],
+            'status': status
         }
     
 class Team(Base):
@@ -121,7 +130,7 @@ class LocationHistory(Base):
     latitude = Column(Float)
     longitude = Column(Float)
     altitude = Column(Float)
-    timestamp = Column(DateTime(timezone=True), server_default=func.now())
+    timestamp = Column(DateTime(timezone=False), server_default=func.now())
 
     def to_json(self):
         return {

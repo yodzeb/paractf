@@ -10,7 +10,7 @@ import random
 class GameManager:
     def __init__(self, db_url='sqlite:///game.db'):
         #self.session = session
-        self.engine = create_engine(db_url)
+        self.engine = create_engine(db_url, pool_size=20)
         Base.metadata.create_all(self.engine)
         self.s = sessionmaker(bind=self.engine)
         self.Session = scoped_session(self.s)
@@ -57,6 +57,12 @@ class GameManager:
         self.Session.commit()
         return member
 
+    def score_igame_total(self, igame_id):
+        igame = self.Session.query(GameInstance).get(igame_id)
+        scoring_method = igame.scoring
+        factory = ScoringFactory()
+        scoring_total = factory.get_scoring_system(scoring_method).score_igame(igame)
+        return scoring_total
 
     def score_igame(self, igame_id):
         igame = self.Session.query(GameInstance).get(igame_id)
