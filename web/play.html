@@ -86,9 +86,8 @@
 	     send_pos(to_send_lat, to_send_lng, to_send_alt);
 	 }
 
-	  function send_pos(to_send_lat, to_send_lng, to_send_alt, accu) {
-	      
-	      //x.innerHTML = "Latitude: " + to_send_lat +  "<br>Longitude: " + to_send_lng + "<br>Altitude: " + to_send_alt + "<br>Accuracy: "+accu;
+	  function update_infos() {
+   //x.innerHTML = "Latitude: " + to_send_lat +  "<br>Longitude: " + to_send_lng + "<br>Altitude: " + to_send_alt + "<br>Accuracy: "+accu;
 	      x.innerHTML = "";
 	      x.innerHTML += "<br>"+current_game.name+" (ID: "+current_game.id+")";
 	      x.innerHTML += "<br><b>"+current_game.status+"</b>"
@@ -118,6 +117,11 @@
 		  x.innerHTML += "</div>";
 	      });
 
+	  }
+	  
+	  function send_pos(to_send_lat, to_send_lng, to_send_alt, accu) {
+	      
+	   
 	      fetch("/player/" + localStorage.ctf_player_id, {
 		  method: "PATCH",
 		  headers: {
@@ -166,13 +170,13 @@
 	     fetchIGameById(localStorage.ctf_igame);
 	 }
 	 
-	 setInterval(update_location, 5000);
-	 setInterval(update_game, 10000);
+	  const location_interval = setInterval(update_location, 5000);
+	  const game_interval     = setInterval(update_game, 10000);
 	 
 	 // Load and display the selected game on the map
 	 function loadGame(game) {
 	     // Clear existing markers on the map
-
+	     update_infos();
 	     if (map) {
 		 markers.forEach(marker => map.removeLayer(marker));
 		 markers = [];
@@ -245,6 +249,11 @@
 		     console.log('Loaded game:', current_game);
 		     // Call a function to initialize your editor with the loaded game
 		     //initializeEditor(current_game);
+		     
+		     if (game.igame.game_over) {
+			 clearInterval(location_interval);
+			 clearInterval(game_interval);
+		     }
 		 })
 		 .catch(error => console.error('Error fetching game:', error));
 	 }

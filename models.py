@@ -51,6 +51,12 @@ class GameInstance(Base):
         self.end_date   = datetime.utcnow() + timedelta(hours=3)
         self.scoring = 'trad'
 
+    def is_on(self):
+        return datetime.utcnow() < self.end_date and datetime.utcnow() > self.start_date
+
+    def is_over(self):
+        return datetime.utcnow() > self.end_date
+    
     def to_json(self):
         status = "<fontcolor='orange'>Not started!</font>"
         if datetime.utcnow() > self.start_date:
@@ -62,11 +68,12 @@ class GameInstance(Base):
             'scoring_system': self.scoring,
             'name': self.name,
             'game_id': self.game_id,
-            'start_date': self.start_date,
-            'end_date': self.end_date,
+            'start_date': self.start_date.timestamp(),
+            'end_date': self.end_date.timestamp(),
             'teams': [ t.to_json() for t in self.teams ],
             'cylinders': [ c.to_json() for c in self.game.cylinders ],
-            'status': status
+            'status': status,
+            'game_over': self.is_over()
         }
     
 class Team(Base):

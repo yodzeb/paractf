@@ -75,15 +75,16 @@ class GameManager:
         member = self.Session.query(TeamMember).get(member_id)
         if member:
             if member.password == member_pass:
-                # Store historical location
-                location = LocationHistory(
-                    team_member_id=member.id,
-                    latitude=latitude,
-                    longitude=longitude,
-                    altitude=altitude,
-                )
-                self.Session.add(location)
-                self.Session.commit()
+                if member.team.igame.is_on():
+                    # Store historical location
+                    location = LocationHistory(
+                        team_member_id=member.id,
+                        latitude=latitude,
+                        longitude=longitude,
+                        altitude=altitude,
+                    )
+                    self.Session.add(location)
+                    self.Session.commit()
         #self.update_igame(member.team.igame.id)
                 
     def create_cylinder(self, game_id, latitude, longitude, radius):
@@ -154,8 +155,11 @@ class GameManager:
         print ("error")
         return False
 
-    def get_all_igames(self):
-        return self.Session.query(GameInstance).all()
+    def get_all_igames(self, active_only=False):
+        igames = self.Session.query(GameInstance).all()
+
+        if not active_only:
+            return igames
     
     def create_igame(self, name, game_id):
         game = self.find_game_by_id(game_id)

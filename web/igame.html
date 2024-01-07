@@ -118,54 +118,103 @@
 		  fetchIGameById(gameId);
 	      });
       }
+
+
+      function generateFunnyFrenchIndianName() {
+	  const funnySuffixes = ['Dansant', 'Riant', 'Chantant', 'Sautant', 'Courant', 'Volant', 'Errant', 'Sifflant', 'Hurlant', 'Dormant', 'Joyeux', 'Pétillant', 'Farceur', 'Malicieux', 'Bavard', 'Radieux', 'Étourdi', 'Virevoltant', 'Gigotant', 'Galopant', 'Épicurien', 'Souriant', 'Malin', 'Coquin', 'Turbulent', 'Lutin', 'Cocasse', 'Marrant', 'Pétomane', 'Croustillant'];
+	  const funnyPrefixes = ['Ours', 'Nuage', 'Arc-en-ciel', 'Tonnerre', 'Lune', 'Soleil', 'Brise', 'Étoile', 'Rivière', 'Vent', 'Cocotier', 'Caramel', 'Bouleau', 'Tempête', 'Cerise', 'Grenouille', 'Fleur', 'Cactus', 'Éclair', 'Biscuit', 'Chocolat', 'Clown', 'Girafe', 'Papillon', 'Flamme', 'Pirate', 'Galette', 'Cornichon', 'Poulet', 'Canard', 'Biscuit', 'Banane'];
+	  
+	  const randomPrefix = funnyPrefixes[Math.floor(Math.random() * funnyPrefixes.length)];
+	  const randomSuffix = funnySuffixes[Math.floor(Math.random() * funnySuffixes.length)];
+	  
+	  return `${randomPrefix} ${randomSuffix}`;
+      }
       
+      function generateRandomFrenchForename() {
+	  const commonFrenchPrefixes = ['je', 'mi', 'el', 'mar', 'lou', 'is', 'an', 'ra', 'mon', 'ique', 'ph', 'au', 'vien', 'quet', 'co', 're', 'ge', 'beau', 'pre', 'par', 'did', 'rob', 'ro'];
+	  const commonFrenchSuffixes = ['ette', 'ph', 'au', 'x', 'ne', 'ique', 'a', 'elle', 'ine', 'elle', 'on', 'ot', 'ant', 'ent', 'eur', 'ard', 'art', 'ier', 'ois'];
+
+	  const forenameLength = Math.floor(Math.random() ) + 2; // Random length between 1 and 2 syllables
+
+	  let randomForename = '';
+
+	  for (let i = 0; i < forenameLength; i++) {
+	      const useDoubleSyllable = Math.random() < 0.5; // 50% chance to use double syllable
+
+	      const randomPrefix = commonFrenchPrefixes[Math.floor(Math.random() * commonFrenchPrefixes.length)];
+	      const randomSuffix = commonFrenchSuffixes[Math.floor(Math.random() * commonFrenchSuffixes.length)];
+
+	      randomForename += useDoubleSyllable ? (randomPrefix + randomSuffix) : randomPrefix;
+	      
+	      // Add a middle syllable for variety
+	      if (i === 0 && useDoubleSyllable) {
+		  const middleSyllable = commonFrenchSuffixes[Math.floor(Math.random() * commonFrenchSuffixes.length)];
+		  randomForename += middleSyllable;
+	      }
+	  }
+
+	  return randomForename.charAt(0).toUpperCase() + randomForename.slice(1);
+      }
+
       function joinTeam(t) {
-	  fetch('/igame/'+current_game.id+"/team/"+t.id, {
-	      method: "POST",
-	      headers: {
-		  'Content-Type': 'application/json',
-              },
-	      body: JSON.stringify({
-		  player_name: prompt('Enter a name:', "Player-"+Math.floor(Math.random() * 1000))
-	      }),
-	  })
-	      .then(response => response.json())
-	      .then(r => {
-		  console.log(r);
-		  localStorage.setItem("ctf_player_id", r.player.id);
-		  localStorage.setItem("ctf_player_password", r.player.password);
-		  localStorage.setItem("ctf_igame", current_game.id);
-		  window.location = "/static/play.html";
-	      });
+	  def_name = prompt('Enter a name:', generateRandomFrenchForename());
+	  if (def_name) {
+	      fetch('/igame/'+current_game.id+"/team/"+t.id, {
+		  method: "POST",
+		  headers: {
+		      'Content-Type': 'application/json',
+		  },
+		  body: JSON.stringify({
+		      player_name: def_name
+		  }),
+	      })
+		  .then(response => response.json())
+		  .then(r => {
+		      console.log(r);
+		      localStorage.setItem("ctf_player_id", r.player.id);
+		      localStorage.setItem("ctf_player_password", r.player.password);
+		      localStorage.setItem("ctf_igame", current_game.id);
+		      window.location = "/static/play.html";
+		  });
+	  }
       }
       
       function deleteTeam(t) {
-	  fetch('/igame/'+current_game.id+'/team/'+t.id, {
-	      method: 'DELETE',
-	      headers: {
-		  'Content-Type': 'application/json',
-              },
-	  })
-	      .then(response => response.json())
-	      .then(team => {
-		  fetchIGameById(current_game.id);
-	      });
+	  var isConfirmed = window.confirm("Supprimer l'équipe ?");
+	  
+          // Check the user's response
+          if (isConfirmed) {
+	      
+	      fetch('/igame/'+current_game.id+'/team/'+t.id, {
+		  method: 'DELETE',
+		  headers: {
+		      'Content-Type': 'application/json',
+		  },
+	      })
+		  .then(response => response.json())
+		  .then(team => {
+		      fetchIGameById(current_game.id);
+		  });
+	  }
       }
       
       function newTeam() {
-	  fetch('/igame/'+current_game.id+'/team', {
-	      method: 'POST',
-	      headers: {
-		  'Content-Type': 'application/json',
-              },
-	      body: JSON.stringify({
-		  name: prompt('Enter a name:', "Team-")
-	      }),
-	  })
-	      .then(response => response.json())
-	      .then(team => {
-		  fetchIGameById(current_game.id);
-	      });
+	  team_name = prompt("Team Name:", generateFunnyFrenchIndianName());
+	  if (team_name) {
+	      fetch('/igame/'+current_game.id+'/team', {
+		  method: 'POST',
+		  headers: {
+		      'Content-Type': 'application/json',
+		  },
+		  body: JSON.stringify({
+		      name: team_name
+		  }),
+	      })
+		  .then(response => response.json())
+		  .then(team => {
+		      fetchIGameById(current_game.id);
+		  });
+	  }
       }
       
       
