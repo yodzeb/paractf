@@ -111,10 +111,17 @@ def get_igames():
 def get_igame(igame_id):
     igame = manager.find_igame_by_id(igame_id)
     if igame:
-        return jsonify({'igame': igame.to_json(), 'message': 'ok'}), 200
+        return jsonify({'igame': igame.to_json(), 'score': manager.score_igame(igame.id), 'message': 'ok'}), 200
     else:
         return jsonify({'message': 'nok'}), 404
 
+@app.route('/igame/<int:igame_id>', methods=['DELETE'])
+def delete_igame(igame_id):
+    if manager.delete_igame(igame_id):
+        return jsonify({'message': 'ok'}), 200
+    else:
+        return jsonify({'message': 'nok'}), 500
+    
 # Create a new team
 @app.route('/igame/<int:igame_id>/team', methods=['POST'])
 def create_team(igame_id):
@@ -139,7 +146,6 @@ def delete_team(igame_id, team_id):
 # Join a Team
 @app.route('/igame/<int:igame_id>/team/<int:team_id>', methods=['POST'])
 def join_team(igame_id, team_id):
-    print ("AAAAAAAAAAA")
     data = request.json
     if data and 'player_name' in data and data['player_name'] != "":
         player = manager.join_igame(igame_id, team_id, data['player_name'])
@@ -148,6 +154,11 @@ def join_team(igame_id, team_id):
 
     return jsonify({'message': 'nok'}), 500
 
+# update color
+@app.route('/team/<int:team_id>/color', methods=['PATCH'])
+def udpate_color_team(team_id):
+    team = manager.update_team_color(team_id)
+    return jsonify({'message': 'ok'}), 200
 
 # Add a team member
 @app.route('/team/member/add', methods=['POST'])

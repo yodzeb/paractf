@@ -3,6 +3,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 from models import Base, Game, Team, TeamMember, Cylinder, GameInstance, LocationHistory
 from sqlalchemy.orm import Session
+from scoring_models import ScoringFactory
+
+import random
 
 class GameManager:
     def __init__(self, db_url='sqlite:///game.db'):
@@ -25,7 +28,14 @@ class GameManager:
 
     def create_team(self, igame_id, name):
         team = Team(name=name, igame_id=igame_id)
+        team.change_color()
         self.Session.add(team)
+        self.Session.commit()
+        return team
+
+    def update_team_color(self, team_id):
+        team = self.Session.query(Team).get(team_id)
+        team.change_color()
         self.Session.commit()
         return team
 
@@ -40,7 +50,6 @@ class GameManager:
                     self.Session.commit()
                     return igame
         return False
-                    
     
     def add_team_member(self, team_id, name):
         member = TeamMember(name=name, team_id=team_id)
@@ -48,6 +57,14 @@ class GameManager:
         self.Session.commit()
         return member
 
+
+    def score_igame(self, igame_id):
+        igame = self.Session.query(GameInstance).get(igame_id)
+        scoring_method = igame.scoring
+        factory = ScoringFactory()
+        scoring_latest = factory.get_scoring_system(scoring_method).score_latest_update(igame)
+        return scoring_latest
+        
     def update_team_member_location(self, member_id, member_pass, latitude, longitude, altitude):
         member = self.Session.query(TeamMember).get(member_id)
         if member:
@@ -59,17 +76,16 @@ class GameManager:
                     longitude=longitude,
                     altitude=altitude,
                 )
-                print (location.id)
                 self.Session.add(location)
-                #self.Session.add(member)
                 self.Session.commit()
-
+        #self.update_igame(member.team.igame.id)
+                
     def create_cylinder(self, game_id, latitude, longitude, radius):
         cylinder = Cylinder(game_id=game_id, latitude=latitude, longitude=longitude, radius=radius)
         self.Session.add(cylinder)
         self.Session.commit()
         return cylinder
-
+    
     def find_game_by_id(self, game_id):
         return self.Session.query(Game).get(game_id)
 
@@ -94,6 +110,14 @@ class GameManager:
         self.Session.commit()
         return game
 
+    def delete_igame(self, igame_id):
+        igame = self.find_igame_by_id(igame_id)
+        if igame is not None:
+            self.Session.delete(igame)
+            self.Session.commit()
+            return True
+        return False
+    
     def delete_game(self, game_id):
         game = self.find_game_by_id(game_id)
         if game is None:

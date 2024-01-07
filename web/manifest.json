@@ -1,0 +1,13 @@
+{
+    "short_name": "Para CTF",
+    "name": "Para CTF",
+    "display": "fullscreen",
+    "orientation": "landscape",
+    "icons": [
+	{
+	    "src": "img/favicon.ico",
+	    "sizes": "192x192",
+	    "type": "image/png"
+	}
+    ]
+}

@@ -1,217 +1,296 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Viewer</title>
-    <!-- Include Leaflet CSS and JS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Game Viewer</title>
+	<!-- Include Leaflet CSS and JS -->
+	<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+	<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 	<!-- Include Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"  crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <style>
-        body {
-            display: flex;
-            margin: 0;
-        }
-
-        #game-list {
-
-            overflow-y: auto;
-            padding: 10px;
-            box-sizing: border-box;
-            background-color: #f0f0f0;
-            cursor: pointer; /* Set the cursor property */
-        }
-
-     #menu {
-	 display: block;
-	 width: 20%;
-     }
-     
-     #game-name {
-	 display: flex;
-         overflow-y: auto;
-         padding: 10px;
-         box-sizing: border-box;
-         background-color: #f0f0f0;
-     }
-
-     .game-entry {
-         display: flex;
-         align-items: center;
-         justify-content: space-between;
-         margin-bottom: 8px;
-         padding: 4px;
-         border-bottom: 1px solid #ccc;
-     }
-
-	.menuicons {
-            /* Align the icons to the right */
-            text-align: right;
-	}
-	
-	.menuicons i {
-            margin-left: 8px; /* Add some space between icons */
-	}
-	
-	
-        #map {
-            flex: 1;
-            height: 100vh;
-        }
-    </style>
-</head>
-<body>
-    <div id="menu"></div>
-    <div id="map"></div>
-    <script src="https://richtr.github.io/NoSleep.js/dist/NoSleep.min.js"></script>
-    <!-- 
-	 <input type="button" id="toggle" value="Wake Lock is disabled" />
-
-	 <script>
-	 var noSleep = new NoSleep();
-
-	 var wakeLockEnabled = false;
-	 var toggleEl = document.querySelector("#toggle");
-	 toggleEl.addEventListener('click', function() {
-         if (!wakeLockEnabled) {
-         noSleep.enable(); // keep the screen on!
-         wakeLockEnabled = true;
-         toggleEl.value = "Wake Lock is enabled";
-         document.body.style.backgroundColor = "green";
-         } else {
-         noSleep.disable(); // let the screen turn off.
-         wakeLockEnabled = false;
-         toggleEl.value = "Wake Lock is disabled";
-         document.body.style.backgroundColor = "";
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"  crossorigin="anonymous" referrerpolicy="no-referrer" />
+	<style>
+         body {
+             display: flex;
+             margin: 0;
          }
-	 }, false);
-	 </script>
-    -->
-    
-    <script>
-     var noSleep = new NoSleep();
-     noSleep.enable();
-     
-     var x = document.getElementById("menu");
-     var y = 0;
-     function showPosition(position) {
-	 console.log(position);
 
-	 x.innerHTML = "Latitude: " + position.coords.latitude +  "<br>Longitude: " + position.coords.longitude + "<br>Altitude: " + position.coords.altitude + "<br>"+(y++);
 
-	 fetch("/player/" + localStorage.ctf_player_id, {
-	     method: "PATCH",
-             headers: {
-                 'Content-Type': 'application/json',
-             },
-             body: JSON.stringify({
-                 game_id: localStorage.ctf_igame,
-                 latitude: position.coords.latitude,
-		 longitude: position.coords.longitude,
-		 altitude: position.coords.altitude,
-		 member_password: localStorage.ctf_player_password
-             }),
-         })
-             .then(response => {
-		 if (response.ok) {
-		     console.log("update ok");
-		 }
-             })
-     }
-     
-     function update_location(){
-	 console.log("update");
-	 if (navigator.geolocation) {
-             navigator.geolocation.getCurrentPosition(showPosition);
-	 } else {
-             x.innerHTML = "Geolocation is not supported by this browser.";
-	 }
-     }
-
-     function update_game() {
-	 fetchIGameById(localStorage.ctf_igame);
-     }
-     
-     setInterval(update_location, 5000);
-     setInterval(update_game, 10000);
-     
-     // Load and display the selected game on the map
-     function loadGame(game) {
-	 // Clear existing markers on the map
-
-	 if (map) {
-             markers.forEach(marker => map.removeLayer(marker));
-             markers = [];
+	 .my-label {
+	     position: absolute;
+	     //width:50px;
+	     align:top;
+	     //height: 5px;
+	     font-size:10px;
+	     opacity: 0.5;
 	 }
 
-	 // Create new markers for the cylinders of the selected game
-	 game.cylinders.forEach(cylinder => {
-             const marker = L.circle([cylinder.latitude, cylinder.longitude], {
-		 radius: cylinder.radius,
-		 color: 'blue',
-		 fillOpacity: 0.4
-             }).addTo(map);
-             markers.push(marker);
-	     marker.__id = cylinder.id;
-	     //create_marker_options(marker);
-	 });
+	 .my-label-italic {
+	     position: absolute;
+	     //width:50px;
+	     font-style: italic;
+	     align:top;
+	     //height: 5px;
+	     font-size:10px;
+	     opacity: 0.5;
+	 }
 
-	 game.teams.forEach(team => {
-	     team.members.forEach(member => {
-		 if (member.last_position) {
-		     const marker = L.circle([member.last_position.latitude, member.last_position.longitude], {
-			 radius: 10,
-			 color: 'red'
-		     }).addTo(map);
-		     markers.push(marker);
-		 }
+	 
+         #game-list {
+
+             overflow-y: auto;
+             padding: 10px;
+             box-sizing: border-box;
+             background-color: #f0f0f0;
+             cursor: pointer; /* Set the cursor property */
+         }
+
+	 #menu {
+	     display: block;
+	     width: 20%;
+	 }
+	 
+	 #game-name {
+	     display: flex;
+             overflow-y: auto;
+             padding: 10px;
+             box-sizing: border-box;
+             background-color: #f0f0f0;
+	 }
+
+	 .game-entry {
+             display: flex;
+             align-items: center;
+             justify-content: space-between;
+             margin-bottom: 8px;
+             padding: 4px;
+             border-bottom: 1px solid #ccc;
+	 }
+
+	 .menuicons {
+             /* Align the icons to the right */
+             text-align: right;
+	 }
+	 
+	 .menuicons i {
+             margin-left: 8px; /* Add some space between icons */
+	 }
+	 
+	 
+         #map {
+             flex: 1;
+             height: 100vh;
+         }
+	</style>
+    </head>
+    <body>
+	<div id="menu">
+	    <div id="infos"></div>
+	    <div id="other">
+		<div id="cheat-infos"></div>
+		<button onclick="toggle_cheat()" id="cheat-button">Cheat mode disabled</button>
+	    </div>
+	</div>
+	<div id="map"></div>
+	<script src="https://richtr.github.io/NoSleep.js/dist/NoSleep.min.js"></script>
+	
+	<script>
+	 var noSleep = new NoSleep();
+	  var cheat_pos = false;
+	  var current_score = false;
+	 noSleep.enable();
+	 
+	 var x = document.getElementById("infos");
+	 var y = 0;
+	  var cheat_mode = false;
+	  var my_player_name = "";
+
+	 function toggle_cheat() {
+	     cheat_mode = !cheat_mode;
+	     update_cheat()
+	 }
+
+	 function update_cheat() {
+	     document.getElementById("cheat-infos").textContent = cheat_pos;
+	     document.getElementById("cheat-button").textContent = "Cheat mode "+(cheat_mode?"enabled":"disabled");
+	 }
+	 
+	 function showPosition(position) {
+	     console.log(position);
+
+	     x.innerHTML = "Latitude: " + position.coords.latitude +  "<br>Longitude: " + position.coords.longitude + "<br>Altitude: " + position.coords.altitude + "<br>"+(y++);
+	     x.innerHTML += "<br>IGame ID: "+current_game.id;
+	     x.innerHTML += "<br>IGame Name: "+current_game.name;
+	     x.innerHTML += "<br>My name:" + my_player_name;
+	     x.innerHTML += "<br>Players:<br>";
+	     
+	     current_game.teams.forEach(t => {
+		 x.innerHTML += "<br><div style='background-color: #"+t.color+"'>Team "+t.name;
+		 t.members.forEach(m => {
+
+		     if (m.id == localStorage.ctf_player_id){
+			 my_player_name = m.name;
+		     }
+
+		     x.innerHTML += "<div>- "+m.name+"</div>";
+		 });
+		 x.innerHTML += "</div>";
 	     });
+
+	     var to_send_lat = position.coords.latitude;
+	     var to_send_lng = position.coords.longitude;
+	     
+	     if (cheat_mode && cheat_pos) {
+		 console.log("sending Cheats");
+		 to_send_lat = cheat_pos.lat;
+		 to_send_lng = cheat_pos.lng;
+	     }
+	     
+	     fetch("/player/" + localStorage.ctf_player_id, {
+		 method: "PATCH",
+		 headers: {
+		     'Content-Type': 'application/json',
+		 },
+		 body: JSON.stringify({
+		     game_id: localStorage.ctf_igame,
+		     latitude: to_send_lat,
+		     longitude: to_send_lng,
+		     altitude: position.coords.altitude,
+		     member_password: localStorage.ctf_player_password
+		 }),
+	     })
+		 .then(response => {
+		     if (response.ok) {
+			 console.log("update ok");
+		     }
+		 })
+	 }
+	 
+	 function update_location(){
+	     console.log("update");
+	     if (navigator.geolocation) {
+		 navigator.geolocation.getCurrentPosition(showPosition);
+	     } else {
+		 x.innerHTML = "Geolocation is not supported by this browser.";
+	     }
+	 }
+
+	 function update_game() {
+	     fetchIGameById(localStorage.ctf_igame);
+	 }
+	 
+	 setInterval(update_location, 5000);
+	 setInterval(update_game, 10000);
+	 
+	 // Load and display the selected game on the map
+	 function loadGame(game) {
+	     // Clear existing markers on the map
+
+	     if (map) {
+		 markers.forEach(marker => map.removeLayer(marker));
+		 markers = [];
+	     }
+
+	     // Create new markers for the cylinders of the selected game
+	     game.cylinders.forEach(cylinder => {
+		 def_color = 'blue'
+		 if (current_score) {
+		     current_score.forEach(s => {
+			 if (s.cylinder_id == cylinder.id && s.valid_team) {
+			     console.log("found a valid! ");
+			     def_color = '#'+s.valid_color;
+			 }
+		     })
+		 }
+		 console.log("col:" +def_color)
+		 marker = L.circle([cylinder.latitude, cylinder.longitude], {
+		     radius: cylinder.radius,
+		     color: def_color,
+		     fillOpacity: 0.4
+		 }).addTo(map);
+		 markers.push(marker);
+		 marker.__id = cylinder.id;
+		 //create_marker_options(marker);
+	     });
+
+	     game.teams.forEach(team => {
+		 team.members.forEach(member => {
+		     if (member.last_position) {
+			 style = "my-label";
+			 console.log(member.name);
+			 console.log(member.last_position.timestamp );
+			 offset = new Date(member.last_position.timestamp).getTimezoneOffset();
+			 diff = ((Date.now()) - new Date((member.last_position.timestamp-(offset*60)) * 1000))/1000;
+			 console.log();
+			 if (diff > 60) {
+			     console.log("italic !");
+			     style = "my-label-italic";
+			 }
+			 if (diff < 900) {
+			     const marker = L.circle([member.last_position.latitude, member.last_position.longitude], {
+				 radius: 30,
+				 color: 'red'
+			     }).addTo(map);
+			     marker.bindTooltip("["+team.name+"] "+member.name, {permanent: true, className: style, offset: [0, 0] });
+			     markers.push(marker);
+			 }
+		     }
+		 });
+	     });
+	     
+
+	     // Fit the map to the bounding box of all cylinders
+	     if (markers.length > 2) {
+		 pad = 20;
+		 if (markers.length == 1)
+		     pad=2;
+		 const bounds = new L.LatLngBounds(markers.map(marker => marker.getLatLng()));
+		 map.fitBounds(bounds,  { padding: [pad, pad]});
+	     }
+	 }
+
+	 function fetchIGameById(gameId) {
+	     fetch('/igame/' + gameId)
+		 .then(response => response.json())
+		 .then(game => {
+		     current_game = game.igame;
+		     current_score = game.score;
+		     loadGame(current_game);
+		     // You can now use the 'current_game' variable to access the loaded game data
+		     console.log('Loaded game:', current_game);
+		     // Call a function to initialize your editor with the loaded game
+		     //initializeEditor(current_game);
+		 })
+		 .catch(error => console.error('Error fetching game:', error));
+	 }
+
+	  
+	 if (localStorage.ctf_player_id && localStorage.ctf_igame && localStorage.ctf_player_password) {
+	     fetchIGameById(localStorage.ctf_igame);
+	 }
+	 else {
+	     alert("aaaa");
+	 }
+	 
+
+	 var map = L.map('map').setView([0, 0], 2);
+
+	 map.on('click', function (e) {
+	     if (cheat_mode) {
+		 cheat_pos = e.latlng;
+		 update_cheat();
+	     }
 	 });
 	 
 
-	 // Fit the map to the bounding box of all cylinders
-	 if (markers.length > 2) {
-	     pad = 100;
-	     if (markers.length == 1)
-		 pad=2;
-             const bounds = new L.LatLngBounds(markers.map(marker => marker.getLatLng()));
-             map.fitBounds(bounds,  { padding: [pad, pad]});
-	 }
-     }
+	 
+	 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+	     attribution: '&copy; OpenStreetMap contributors'
+	 }).addTo(map);
+	 
+	 var markers = [];
+	</script>
 
-     function fetchIGameById(gameId) {
-	 fetch('/igame/' + gameId)
-             .then(response => response.json())
-             .then(game => {
-                 current_game = game.igame;
-		 loadGame(current_game);
-                 // You can now use the 'current_game' variable to access the loaded game data
-                 console.log('Loaded game:', current_game);
-                 // Call a function to initialize your editor with the loaded game
-                 //initializeEditor(current_game);
-             })
-             .catch(error => console.error('Error fetching game:', error));
-     }
-
-     if (localStorage.ctf_player_id && localStorage.ctf_igame && localStorage.ctf_player_password) {
-	 fetchIGameById(localStorage.ctf_igame);
-     }
-     else {
-	 alert("aaaa");
-     }
-     
-
-     var map = L.map('map').setView([0, 0], 2);
-
-     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-	 attribution: '&copy; OpenStreetMap contributors'
-     }).addTo(map);
-
-     var markers = [];
-    </script>
-
-</body>
+    </body>
 </html>

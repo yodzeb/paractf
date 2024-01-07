@@ -39,6 +39,7 @@ class GameInstance(Base):
     end_date   = Column(Integer)
     teams = relationship('Team', back_populates='igame')
     game  = relationship('Game')
+    scoring = Column(String)
 
     def __init__(self, name, game_id):
         self.name = name
@@ -46,6 +47,7 @@ class GameInstance(Base):
         self.password = None
         self.game_id = game_id
         self.start_date = time.time()
+        self.scoring = 'trad'
 
     def to_json(self):
         return {
@@ -62,6 +64,7 @@ class Team(Base):
     __tablename__ = 'teams'
     id = Column(Integer, primary_key=True)
     name = Column(String)
+    color   = Column(Integer)
     igame_id = Column(Integer, ForeignKey('gameinstances.id'))
     igame = relationship('GameInstance', back_populates='teams')
     members = relationship('TeamMember', back_populates='team')
@@ -70,8 +73,19 @@ class Team(Base):
         return {
             'name': self.name,
             'id':   self.id,
-            'members': [ m.to_json() for m in self.members ]
+            'members': [ m.to_json() for m in self.members ],
+            'color':  self.get_color_hex()
         }
+
+    def get_color_hex(self):
+        if self.color:
+            return "{0:0{1}x}".format(self.color,6)
+        else:
+            return "123456"
+
+    def change_color(self):
+        self.color = random.randrange(0,16000000)
+        return
 
 class TeamMember(Base):
     __tablename__ = 'teammembers'
@@ -96,7 +110,7 @@ class TeamMember(Base):
             'id': self.id,
             'name': self.name,
             'password': self.password if with_pass else None,
-            'last_position': self.location_history[:1][0].to_json() if self.location_history and len(self.location_history) > 0 else None
+            'last_position': self.location_history[-1].to_json() if self.location_history and len(self.location_history) > 0 else None
         }
 
 class LocationHistory(Base):
@@ -114,7 +128,7 @@ class LocationHistory(Base):
             'latitude': self.latitude,
             'longitude': self.longitude,
             'altitude': self.altitude,
-            'timestamp': self.timestamp
+            'timestamp': self.timestamp.timestamp()
         }
 
 class Cylinder(Base):
@@ -139,3 +153,4 @@ class Cylinder(Base):
                  "radius" : self.radius
                 }
     
+
