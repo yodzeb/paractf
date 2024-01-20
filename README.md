@@ -7,10 +7,11 @@ Models are sort of competition tasks with turnpoint without times nor teams. Thi
 
 ### CTF
 
-CTF (called ***igames*** in the code, url and some other places) are Game instances on a model. Teams can be added
+CTF (called ***igames*** in the code, url and some other places) are Game instances on a Game Model. Teams can be added.
+CTF are planned for 3 hours for now, but that's already a varible somewhere
 
 ### Teams
-Tea
+Teams are made of members. No limit on the number of Teams / Igame
 
 ### Team Members
 Mostly explicit.
@@ -60,4 +61,5 @@ Most of the code was produced by ChatGPT.
 - CTF Creation : new params to take into account (time to play, scoring method...)
 - maybe lock on Igames once they started, and an explicit start button
 - position caching (+timestamp) when server (or data network !) is unavailable for a while
-- client's data is very much trusted, for pure game data but also for the technical stuff. As i'm not an expert in 
+- client's data is very much trusted, for pure game data but also for the technical stuff. As i'm not an expert in SQLalchemy but that raises a couple of security issues to me.
+- Improve Member auto-naming
