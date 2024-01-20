@@ -23,6 +23,7 @@ button {
 }
 
 
+
 #fixedButton {
     position: fixed;
     top: 50%; /* Adjust the top position as needed */
@@ -88,6 +89,10 @@ button {
     margin-left: 8px; /* Add some space between icons */
 }
 
+.hide {
+    display: none;
+    visibility: hidden;
+}
 
 #map {
     flex: 1;

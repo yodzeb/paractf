@@ -43,7 +43,7 @@
 
 		  igames.igames.reverse().forEach(game => {
 		      const gameEntry = document.createElement('div');
-		      offset = new Date(game.end_date).getTimezoneOffset();
+		      offset = 0;//new Date(game.end_date).getTimezoneOffset();
 		      diff = ((Date.now()) - new Date((game.end_date-(offset*60)) * 1000))/1000;
 		      diff_start = ((Date.now()) - new Date((game.start_date-(offset*60)) * 1000))/1000;
 		      console.log(diff);

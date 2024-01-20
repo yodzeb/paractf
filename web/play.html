@@ -19,6 +19,7 @@
 	    <div id="other">
 		<div id="cheat-infos"></div>
 		<div if="controls">
+		  <div id="altcheat" class="hide">Fake alt:<input type="text" id="fake_alt"/></div>
 		  <div><button onclick="toggle_cheat()" id="cheat-button">Cheat mode disabled</button></div>
 		  <div><button onclick="toggle_autozoom()" id="zoom-button">AutoZoom enabled</button></div>
 		  <div><button onclick="leave()" id="zoom-button">QUIT</button></div>
@@ -62,6 +63,10 @@
 	 function toggle_cheat() {
 	     cheat_mode = !cheat_mode;
 	     update_button('cheat-button', 'Cheat mode ', cheat_mode);
+	     if (cheat_mode) 
+		 document.getElementById('altcheat').classList.remove('hide');
+	     else
+		 document.getElementById('altcheat').classList.add('hide');
 	 }
 
 	  function toggle_autozoom() {
@@ -155,6 +160,8 @@
 		 to_send_lat = cheat_pos.lat;
 		 to_send_lng = cheat_pos.lng;
 		 to_send_alt = 200;
+		 if (parseInt(document.getElementById("fake_alt").value))
+		     to_send_alt = parseInt(document.getElementById("fake_alt").value);
 		 send_pos(to_send_lat, to_send_lng, to_send_alt, "CHEAT MODE");
 	     }
 	     else {
@@ -171,7 +178,7 @@
 	 }
 	 
 	  const location_interval = setInterval(update_location, 5000);
-	  const game_interval     = setInterval(update_game, 10000);
+	  const game_interval     = setInterval(update_game, 30000);
 	 
 	 // Load and display the selected game on the map
 	 function loadGame(game) {
@@ -184,11 +191,13 @@
 
 	     // Create new markers for the cylinders of the selected game
 	     game.cylinders.forEach(cylinder => {
-		 def_color = 'blue'
+		 def_color = 'blue';
+		 alt = 0;
 		 if (current_score) {
 		     current_score.forEach(s => {
 			 if (s.cylinder_id == cylinder.id && s.valid_team) {
 			     def_color = '#'+s.valid_color;
+			     alt = s.valid_alt;
 			 }
 		     })
 		 }
@@ -197,9 +206,12 @@
 		     color: def_color,
 		     fillOpacity: 0.4
 		 }).addTo(map);
+		 if (alt) {
+		     marker.bindTooltip("["+alt+"]", {permanent: true, className: "my-label", offset: [10, 10] });
+		 }
+
 		 markers.push(marker);
 		 marker.__id = cylinder.id;
-		 //create_marker_options(marker);
 	     });
 
 	     game.teams.forEach(team => {

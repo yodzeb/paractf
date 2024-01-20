@@ -57,6 +57,7 @@ class ScoringTraditional(Scoring):
         
     def score_igame(self, igame):
         counters = {}
+
         all_locations = []
         validations = self.get_game_cylinders(igame)
         print ("doing scores")
@@ -77,13 +78,17 @@ class ScoringTraditional(Scoring):
             if lh['timestamp'] > igame.end_date.timestamp():
                 break
             for v in validations:
-                if self.is_location_in_cylinder(lh, v):
+                if not lh['altitude']:
+                    # sorry mate, need alti
+                    continue
+                if ('valid_alt' not in v or lh['altitude'] > v['valid_alt']) and self.is_location_in_cylinder(lh, v):
                     if 'valid_team' in v and v['valid_team'] and 'valid_time' in v:
                         to_add = lh['timestamp'] - v['valid_time']
                         counters[v['valid_team']] += to_add
                     v['valid_time']      = lh['timestamp']
                     v['valid_team']      = lh['team_id']
                     v['valid_team_name'] = lh['team_name']
+                    v['valid_alt']       = lh['altitude']
 
         compare_date = datetime.utcnow()
         if compare_date > igame.end_date:
@@ -102,10 +107,11 @@ class ScoringTraditional(Scoring):
             for m in t.members:
                 for lh in m.location_history:
                     for v in validations:
-                        if self.is_location_in_cylinder(lh, v):
+                        if self.is_location_in_cylinder(lh, v) and ('valid_alt' not in v or lh.altitude > v['valid_alt']):
                             v['valid_time'] = lh.timestamp.timestamp()
                             v['valid_team'] = t.id
                             v['valid_color'] = t.get_color_hex()
+                            v['valid_alt'] = lh.altitude
         return (validations)
 
 
@@ -114,9 +120,11 @@ class ScoringFactory():
         return
     
     def get_scoring_system(self, system):
-        match system:
-            case 'trad':
-                return ScoringTraditional()
+        # Py3.10 only
+        #match system:
+        #    case 'trad':
+        if system == 'trad':
+            return ScoringTraditional()
 
         return ScoringTraditional()
         
