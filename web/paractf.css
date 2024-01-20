@@ -8,10 +8,10 @@ body {
 }
 
 
-	 button {
-	     height: 50px;
-	     width: 100%;
-	 }
+button {
+    height: 50px;
+    width: 100%;
+}
 
 #game-list {
 
@@ -23,21 +23,21 @@ body {
 }
 
 
-	 #fixedButton {
-            position: fixed;
-            top: 50%; /* Adjust the top position as needed */
-            left: 24%; /* Adjust the left position as needed */
-	    width: 30px;
-	    height: 30px;
-            /*padding: 10px;*/
-            background-color: #3498db;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            z-index: 1000; /* Set a higher z-index to ensure it appears above other elements */
-        }
-	 
+#fixedButton {
+    position: fixed;
+    top: 50%; /* Adjust the top position as needed */
+    left: 24%; /* Adjust the left position as needed */
+    width: 30px;
+    height: 30px;
+    /*padding: 10px;*/
+    background-color: #3498db;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    z-index: 1000; /* Set a higher z-index to ensure it appears above other elements */
+}
+
 
 #options {
     width: 20%;
@@ -48,15 +48,15 @@ body {
     cursor: pointer; /* Set the cursor property */
 }
 
-      .popup-options {
-          display: flex;
-          justify-content: space-between;
-          margin-top: 5px;
-      }
+.popup-options {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+}
 
-      #radius-input {
-          margin-top: 10px;
-      }
+#radius-input {
+    margin-top: 10px;
+}
 
 
 .game-entry {
@@ -99,19 +99,21 @@ body {
     text-decoration: line-through;
 }
 
-	 .my-label {
-	     position: absolute;
-	     align:top;
-	     font-size:10px;
-	     padding:0px;
-	     opacity: 0.5;
-	 }
+.my-label {
+    position: absolute;
+    align:top;
+    font-size:10px;
+    padding:0px;
+    opacity: 0.5;
+}
 
-	 .my-label-italic {
-	     position: absolute;
-	     font-style: italic;
-	     align:top;
-	     padding:0px;
-	     font-size:10px;
-	     opacity: 0.5;
-	 }
+.my-label-italic {
+    position: absolute;
+    font-style: italic;
+    align:top;
+    padding:0px;
+    font-size:10px;
+    opacity: 0.5;
+}
+
+

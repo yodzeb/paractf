@@ -34,23 +34,11 @@ def create_game():
 
     name = data['name']
     cylinders_data = data['cylinders']
-
-    # Convert JSON data to Cylinder objects
     cylinders = [Cylinder(c['latitude'], c['longitude'], c['radius']) for c in cylinders_data]
-
-    # Create a new game
     new_game = manager.create_game(name, cylinders)
     print (new_game)
 
-    # Add the new game to the list of games
-    #games.append(new_game)
-
     return jsonify({'game': new_game.to_json() , 'message': 'Game created successfully'}), 201
-    # data = request.json
-    # name = data.get('name')
-    # altitude_threshold = data.get('altitude_threshold')
-    # game = manager.create_game(db.session, name, altitude_threshold)
-    # return jsonify({'message': f'Game "{game.name}" created successfully!'}), 201
 
 # Update game
 @app.route('/game/<int:game_id>', methods=['PATCH'])

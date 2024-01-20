@@ -59,7 +59,7 @@ class ScoringTraditional(Scoring):
         counters = {}
         all_locations = []
         validations = self.get_game_cylinders(igame)
-        
+        print ("doing scores")
         for t in igame.teams:
             counters[t.id] = 0
             for m in t.members:
