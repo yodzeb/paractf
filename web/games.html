@@ -38,7 +38,8 @@
 		  gameList.innerHTML = ''; // Clear existing entries
 		  
 		  title = document.createElement('div');
-		  title.textContent = "CTF en cours";
+		  title.textContent = "CTF en cours:";
+		  title.className = "bold";
 		  gameList.appendChild(title)
 
 		  igames.igames.reverse().forEach(game => {
@@ -124,6 +125,12 @@
 		  b1.textContent = "Refresh All";
 		  b1.addEventListener('click', () => refresh_all());
 		  gameList.appendChild(b1);
+		  b2 = document.createElement('button');
+		  b2.textContent = "New Model";
+		  b2.addEventListener('click', () => newGame());
+		  
+
+		  gameList.appendChild(b2);
 		  
 		  title = document.createElement('div');
 		  title.textContent = "Modeles";
@@ -164,12 +171,6 @@
 		      gameList.appendChild(gameEntry);
 		  });
 
-		  b2 = document.createElement('button');
-		  b2.textContent = "New";
-		  b2.addEventListener('click', () => newGame());
-		  
-
-		  gameList.appendChild(b2);
 	      })
 	      .catch(error => console.error('Error fetching games:', error));
       }

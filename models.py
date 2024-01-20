@@ -49,7 +49,7 @@ class GameInstance(Base):
         self.game_id = game_id
         self.start_date = datetime.utcnow()
         self.end_date   = datetime.utcnow() + timedelta(hours=3)
-        self.scoring = 'trad'
+        self.scoring = 'degress'
 
     def is_on(self):
         return datetime.utcnow() < self.end_date and datetime.utcnow() > self.start_date

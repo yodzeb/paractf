@@ -1,7 +1,7 @@
 from math import radians, sin, cos, sqrt, atan2
 from datetime import datetime
 
-# Abstract super class
+# Abstract super class with some common helpers
 class Scoring():
     def __init__(self):
         return
@@ -34,7 +34,8 @@ class Scoring():
                 "radius": c.radius,
                 "valid_time": 0,
                 "valid_color": None,
-                "valid_team": None
+                "valid_team": None,
+                "altitude": 0
             }
             validations.append(valid)
         return validations
@@ -51,18 +52,13 @@ class Scoring():
     def score_latest_update(self, igame):
         return []
 
-class ScoringTraditional(Scoring):
-    def __init__(self):
-        super().__init__()
-        
-    def score_igame(self, igame):
-        counters = {}
-
+    def get_zero_counters(self, igame):
+        counters={ team.id: 0 for team in igame.teams }
+        return counters
+    
+    def get_all_lh_dict_sorted(self, igame):
         all_locations = []
-        validations = self.get_game_cylinders(igame)
-        print ("doing scores")
         for t in igame.teams:
-            counters[t.id] = 0
             for m in t.members:
                 for lh in m.location_history:
                     all_locations.append( {
@@ -74,7 +70,18 @@ class ScoringTraditional(Scoring):
                         'altitude':  lh.altitude
                     })
 
-        for lh in sorted(all_locations, key=lambda x: x['timestamp']):
+        return sorted(all_locations, key=lambda x: x['timestamp'])
+
+class ScoringTraditional(Scoring):
+    def __init__(self):
+        super().__init__()
+        
+    def score_igame(self, igame):
+        counters = self.get_zero_counters(igame)
+        all_locations = self.get_all_lh_dict_sorted(igame)
+        validations = self.get_game_cylinders(igame)
+
+        for lh in all_locations:
             if lh['timestamp'] > igame.end_date.timestamp():
                 break
             for v in validations:
@@ -90,6 +97,7 @@ class ScoringTraditional(Scoring):
                     v['valid_team_name'] = lh['team_name']
                     v['valid_alt']       = lh['altitude']
 
+        # Add the rest of the score compared to now()
         compare_date = datetime.utcnow()
         if compare_date > igame.end_date:
             compare_date = igame.end_date
@@ -105,14 +113,83 @@ class ScoringTraditional(Scoring):
         
         for t in igame.teams:
             for m in t.members:
-                for lh in m.location_history:
+                for lh in m.location_history: 
                     for v in validations:
-                        if self.is_location_in_cylinder(lh, v) and ('valid_alt' not in v or lh.altitude > v['valid_alt']):
+                        if (self.is_location_in_cylinder(lh, v)
+                            and ('valid_alt' not in v or lh.altitude > v['valid_alt'])
+                            and ('valid_time' not in v or lh.timestamp.timestamp() > v['valid_time'])):
                             v['valid_time'] = lh.timestamp.timestamp()
                             v['valid_team'] = t.id
                             v['valid_color'] = t.get_color_hex()
                             v['valid_alt'] = lh.altitude
+
         return (validations)
+
+# TBD
+class DegressiveScoring(Scoring):
+    def __init__(self, degress_factor=1):
+        self.degress_factor = degress_factor
+        super().__init__()
+
+    def score_igame(self, igame):
+        counters = self.get_zero_counters(igame)
+        all_locations = self.get_all_lh_dict_sorted(igame)
+        validations = self.get_game_cylinders(igame)
+
+        # Add the rest of the score compared to now()
+        compare_date = datetime.utcnow()
+        if compare_date > igame.end_date:
+            compare_date = igame.end_date
+        compare_date = compare_date.timestamp()
+        
+        for lh in all_locations:
+            if lh['timestamp'] > igame.end_date.timestamp():
+                break
+            for v in validations:
+                if not lh['altitude']:
+                    continue
+                if (self.is_location_in_cylinder(lh, v)
+                    and ('valid_alt'  not in v or lh['altitude'] > (v['valid_alt']  - self.degress_factor * (compare_date-v['valid_time'])))
+                    and ('valid_time' not in v or lh['timestamp'] > v['valid_time'])):
+                    if 'valid_team' in v and v['valid_team'] and 'valid_time' in v:
+                        to_add = lh['timestamp'] - v['valid_time']
+                        counters[v['valid_team']] += to_add
+                    v['valid_time']      = lh['timestamp']
+                    v['valid_team']      = lh['team_id']
+                    v['valid_team_name'] = lh['team_name']
+                    v['valid_alt']       = lh['altitude']
+
+        for v in validations:
+            if v['valid_team']:
+                to_add = compare_date - v['valid_time']
+                counters[v['valid_team']] += to_add
+            
+        return counters
+
+
+    def score_latest_update(self, igame):
+        validations = self.get_game_cylinders(igame)
+        compare_date = datetime.utcnow().timestamp()
+        
+        for t in igame.teams:
+            for m in t.members:
+                for lh in m.location_history: 
+                    for v in validations:
+                        if (self.is_location_in_cylinder(lh, v)
+                            and ('valid_alt' not in v or lh.altitude > (v['valid_alt']  - self.degress_factor * (compare_date-v['valid_time'])))
+                            and ('valid_time' not in v or lh.timestamp.timestamp() > v['valid_time'])):
+                            v['valid_time'] = lh.timestamp.timestamp()
+                            v['valid_team'] = t.id
+                            v['valid_color'] = t.get_color_hex()
+                            v['valid_alt'] = lh.altitude
+
+        for v in validations:
+            if 'valid_alt' in v:
+                v['valid_alt'] = max(0,v['valid_alt']  - self.degress_factor * (compare_date-v['valid_time']))
+        return (validations)
+        
+        return
+                                    
 
 
 class ScoringFactory():
@@ -126,5 +203,9 @@ class ScoringFactory():
         if system == 'trad':
             return ScoringTraditional()
 
+        if system == 'degress':
+            return DegressiveScoring(1)
+
+        # default
         return ScoringTraditional()
         

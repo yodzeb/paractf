@@ -78,7 +78,10 @@ button {
     /*background-color: #f0f0f0;*/
 }
 
-
+.bold {
+    font-weight: bold;
+}
+    
 
 .menuicons {
     /* Align the icons to the right */

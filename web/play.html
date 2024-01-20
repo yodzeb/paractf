@@ -178,7 +178,7 @@
 	 }
 	 
 	  const location_interval = setInterval(update_location, 5000);
-	  const game_interval     = setInterval(update_game, 30000);
+	  const game_interval     = setInterval(update_game, 10000);
 	 
 	 // Load and display the selected game on the map
 	 function loadGame(game) {
@@ -207,7 +207,7 @@
 		     fillOpacity: 0.4
 		 }).addTo(map);
 		 if (alt) {
-		     marker.bindTooltip("["+alt+"]", {permanent: true, className: "my-label", offset: [10, 10] });
+		     marker.bindTooltip("["+Math.floor(alt)+"]", {permanent: true, className: "my-label", offset: [10, 10] });
 		 }
 
 		 markers.push(marker);
@@ -289,7 +289,11 @@
 	 });
 	 
 
-	  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+	  //L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+	  L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+	      opacity: 0.5,
+	  // L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+	  //L.tileLayer('https://tile.osm.ch/switzerland/{z}/{x}/{y}.png', {
 	      //attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community'
 	  }).addTo(map);
 
