@@ -1,7 +1,9 @@
 # ParaCTF - An IRL Paragliding CTF game
 
 ## Rules
-These are classical ctf rules applied to (real) paragliding. A game is set with flags (sort-of-competition-turnpoints : cylinders centered on a point with a certain radius). Teams join a game, Pilots join a Team. Once a team member enters a flag zone, he/her captures it for his/her team. The flags can be retaken by another team, depending on the scoring model in place for the current game. A scoring system is attached to the game to calculate the scores and flag statuses (same principle as if a "Race to goal" or "Elapsed time" scoring system is attached to a competition task).
+These are classical ctf rules applied to (real) paragliding. A game is set with flags (sort-of-competition-turnpoints : cylinders centered on a point with a certain radius). Teams join a game, Pilots join a Team. Once a team member enters a flag zone, he/her captures it for his/her team. The flags can be retaken by another team, depending on the scoring model in place for the current game. 
+
+A scoring system is attached to the game to calculate the scores and flag statuses (same principle as if a "Race to goal" or "Elapsed time" scoring system is attached to a competition task).
 
 The game page screenshot:
 ![play_screen](doc_images/play.png)
@@ -32,7 +34,7 @@ Mostly explicit. These are the pilots. Not that each one receive a unique passwo
 
 ### Scoring systems
 #### Introduction
-Scoring systems are abstracted for evolution. For now 2 are available.
+Scoring systems are finally the core of the game and are abstracted for evolution. For now 2 implementations (trad/degress) are available.
 In general, implementing a scoring system requires to implement 2 functions:
 - score_latest_update > get a quick latest update for the client's view to update (especially on Flags' statuses)
 - score_igame > Get teams's final score (or at least the latest ones)
@@ -41,12 +43,23 @@ Note there is a parent scoring class that implements a bunch of helpful methods,
   
 #### trad
 The last team member in a flag will give the flag to his or her team, and store pilot's altitude in the flag. Anohter pilot can take over this flag only if his/her altitude is above the previous one.
+
 1pt/sec once for each captured flag for a team, as long as the flag belongs to them
 
 #### degress
 Almost the same rule, but once the last pilot of a team leaves the flag, the stored altitude will decrease by 1 meter every second (the goal is to give more chance to recapture, or simply take into account the flying condition that may change during the game (for instance cloud base getting lower)
+
 The same 1pt/sec for each captured flag for a team, as long as the flag belongs to them.
 
+#### More ideas:
+- ***getthemall***: once a lag is captured, it can't be recaptured. Score only reflects the number of flags
+- ***firstbetter***: Gives bonus to the first team capturing a flag (i.e. equivalent of 10 min capture time, so 600pts using the *trad* method f the same scoring applies)
+- ***degresslimit***: A flag stay captured for a while once the last pilot leaves it, but only for a certain time. Then it must be recapture to score again. Scoring coule even be even progressive with a 1/n function during/after that time limit (real scoring systems love such degressive counting). It's a sort of an extesnion for the *degress* system.
+- ***groupmode***: at least N pilots must capture a flag simultaneously (or within a defined time range) to capture it... 
+
+### Thoughts and ideas
+Even though very close to a real competition task, here the game machanics are a bit different and may offer a bit of fun to the players. Group flying is not primarily a goal for such a game, despite the "Team" notion, but could easily be more important with a new scoring model tkaing such variable into account.
+However, the game may encourage pilots to enjoy average flying condition and help them stay/play into the air. Also Team Member must communicate with each other and must think about tactics while being in the air. That raises both security concerns but may also improves it by doing a bit-of-multitasking while flying. These are finally very similar to a *normal* competition too.
 
 ## Development 
 
