@@ -1,18 +1,27 @@
 # ParaCTF - A IRL Paragliding CTF game
 
 ## Rules
+This is a ctf game model applied to paragliding. A task is set with sort-of-competition-turnpoint : circles center on a point with a certain radius. Once a team member enters a flag zone, he/her captures it for his/her team. The flags can be retaken by another team, depending on the scoring model in place for the game.  
 
-[!play_screen](https://github.com/yodzeb/paractf/blob/d6514a0980e696599bcaa801d6ee3f30a4aca189/doc_images/play.png)
+The game page screenshot:
+![play_screen](doc_images/play.png)
 
 ## Models
 ### Games
 
 Models are sort of competition tasks with only the turnpoints (without times nor teams). This was meant to save interesting tasks for future games.
 
+Game model editor
+![play_screen](doc_images/editor.png)
+
 ### CTF
 
 CTF (called ***igames*** in the code, url and some other places) are Game instances on a Game Model. Teams can be added.
 CTF are planned for 3 hours for now, but that's already a varible somewhere
+
+CTF setup:
+![play_screen](doc_images/game.png)
+
 
 ### Teams
 Teams are made of members. No limit on the number of Teams / Igame
