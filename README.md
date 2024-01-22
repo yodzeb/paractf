@@ -1,9 +1,13 @@
 # ParaCTF - A IRL Paragliding CTF game
 
 ## Rules
-### Games models
 
-Models are sort of competition tasks with turnpoint without times nor teams. This was meant to save interesting tasks for replay.
+[!play_screen](https://github.com/yodzeb/paractf/blob/d6514a0980e696599bcaa801d6ee3f30a4aca189/doc_images/play.png)
+
+## Models
+### Games
+
+Models are sort of competition tasks with only the turnpoints (without times nor teams). This was meant to save interesting tasks for future games.
 
 ### CTF
 
@@ -14,12 +18,13 @@ CTF are planned for 3 hours for now, but that's already a varible somewhere
 Teams are made of members. No limit on the number of Teams / Igame
 
 ### Team Members
-Mostly explicit.
+Mostly explicit. These are the pilots. Not that each one receive a unique password when joining a game, that will act as a vlaidation key for updating his/her position.
+
 
 ### Scoring systems
 #### Introduction
 Scoring systems are abstracted for evolution. For now 2 are available.
-In general, implementing a scoring system requires to implement 2 function:
+In general, implementing a scoring system requires to implement 2 functions:
 - score_latest_update > get a quick latest update for the client's view to update (especially on Flags' statuses)
 - score_igame > Get teams's final score (or at least the latest ones)
 
