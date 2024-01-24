@@ -1,7 +1,7 @@
 # ParaCTF - An IRL Paragliding CTF game
 
 ## Rules
-These are classical ctf rules applied to (real) paragliding. A game is set with flags (sort-of-competition-turnpoints : cylinders centered on a point with a certain radius). Teams join a game, Pilots join a Team. Once a team member enters a flag zone, he/her captures it for his/her team. The flags can be retaken by another team, depending on the scoring model in place for the current game. 
+These are classical [CTF](https://en.wikipedia.org/wiki/Capture_the_flag) rules applied to (real) paragliding. A game is set with flags (sort-of-competition-turnpoints : cylinders centered on a point with a certain radius). Teams join a game, Pilots join a Team. Once a team member enters a flag zone, he/her captures it for his/her team. The flags can then be retaken by another team, depending on the scoring model in place for the current game. 
 
 A scoring system is attached to the game to calculate the scores and flag statuses (same principle as if a "Race to goal" or "Elapsed time" scoring system is attached to a competition task).
 
@@ -52,19 +52,19 @@ Almost the same rule, but once the last pilot of a team leaves the flag, the sto
 The same 1pt/sec for each captured flag for a team, as long as the flag belongs to them.
 
 #### More ideas:
-- ***getthemall***: once a lag is captured, it can't be recaptured. Score only reflects the number of flags
+- ***getthemall***: once a lag is captured, it can't be recaptured. The score only reflects the number of flags
 - ***firstbetter***: Gives bonus to the first team capturing a flag (i.e. equivalent of 10 min capture time, so 600pts using the *trad* method f the same scoring applies)
-- ***degresslimit***: A flag stay captured for a while once the last pilot leaves it, but only for a certain time. Then it must be recapture to score again. Scoring coule even be even progressive with a 1/n function during/after that time limit (real scoring systems love such degressive counting). It's a sort of an extesnion for the *degress* system.
-- ***groupmode***: at least N pilots must capture a flag simultaneously (or within a defined time range) to capture it... 
+- ***degresslimit***: A flag stay captured for a while once the last pilot leaves it, but only for a certain time. Then it must be recapture to score again. The scoring could even be even progressive with a 1/n function during/after that time limit (real scoring systems love such degressive counting). It's a sort of an extension for the *degress* system.
+- ***groupmode***: at least N pilots must stay a flag simultaneously (or within a defined time range) to actually capture it... 
 
 ### Thoughts and ideas
-Even though very close to a real competition task, here the game machanics are a bit different and may offer a bit of fun to the players. Group flying is not primarily a goal for such a game, despite the "Team" notion, but could easily be more important with a new scoring model tkaing such variable into account.
-However, the game may encourage pilots to enjoy average flying condition and help them stay/play into the air. Also Team Member must communicate with each other and must think about tactics while being in the air. That raises both security concerns but may also improves it by doing a bit-of-multitasking while flying. These are finally very similar to a *normal* competition too.
+Even though very close to a real competition task, here the game mechanics are a bit different and may offer a bit of fun to the players. Group flying is not primarily a goal for such a game, despite the "Team" notion, but could easily be more important with a new scoring model taking such variable into account.
+However, the game may give opportunity to the pilots to enjoy an average flying condition day, and help them stay/play into the air. Also the Team Members must communicate with each other and must think about tactics while being in the air. That raises both security concerns but may also improves it by doing a bit-of-multitasking while flying. These are finally very similar to a *normal* competition too.
 
 ## Development 
 
 ### Front
-JS/ajax code + Leaflet. position & altitude taken from the navigator.geolocation.getCurrentPosition() builtin method.
+JS/ajax code + Leaflet. position & altitude taken from the navigator.geolocation.getCurrentPosition() browser's builtin method.
 Dedicated pages for each step (landing page/editor/igame creation/play) with ***a lot*** of code redundancy there.
 
 ### Back
@@ -90,7 +90,7 @@ Most of the code was produced by ChatGPT.
     - Redo left menu with unifed Look&Feel
     - a bit of code refactoring for the map view which is almost duplicated between the different pages.
 - CTF Creation : new params to take into account (time to play, scoring method...)
-- maybe lock on Igames once they started, and an explicit start button
+- maybe lock on Igames once they started (and game models once a Igame as been created on them !), and an explicit start button
 - position caching (+timestamp) when server (or data network !) is unavailable for a while
 - client's data is very much trusted, for pure game data but also for the technical stuff. As i'm not an expert in SQLalchemy but that raises a couple of security issues to me.
 - Improve Member auto-naming
