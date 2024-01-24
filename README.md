@@ -34,7 +34,7 @@ Mostly explicit. These are the pilots. Not that each one receive a unique passwo
 
 ### Scoring systems
 #### Introduction
-Scoring systems are finally the core of the game and are abstracted for evolution. For now 2 implementations (trad/degress) are available.
+Scoring systems are finally the core of the game and are abstracted for evolution. For now 2 implementations ([trad](#trad)/***degress***) are available.
 In general, implementing a scoring system requires to implement 2 functions:
 - score_latest_update > get a quick latest update for the client's view to update (especially on Flags' statuses)
 - score_igame > Get teams's final score (or at least the latest ones)
