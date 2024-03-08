@@ -4,8 +4,9 @@ from flask import Flask, request, jsonify, render_template
 from models import Base, Game, Team, TeamMember, Cylinder
 from game import GameManager
 from flask_sqlalchemy import SQLAlchemy
+import os
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='web')
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///game.db'
 # app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -19,10 +20,10 @@ manager = GameManager()#db.session)
 app.static_folder = 'web'
 app.static_url_path= '/static'
  
-# # Route for the index page
-# @app.route('/')
-# def index():
-#     return render_template('web/index.html')
+# Route for the index page
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 # Create a new game
 @app.route('/game', methods=['POST'])
@@ -50,7 +51,7 @@ def update_game(game_id):
 
     return jsonify({'game': game.to_json(), 'message': 'Game updated successfully'}), 200
 
-# single game
+# Get a game
 @app.route('/game/<int:game_id>', methods=['GET'])
 def get_single_game(game_id):
     g = manager.find_game_by_id(game_id)
@@ -60,13 +61,13 @@ def get_single_game(game_id):
         return jsonify({'message': 'error'}), 400
     
     
-# List games
+# List all games
 @app.route('/game', methods=['GET'])
 def get_games():
     games = manager.list_games()
     return (games)
 
-# List games
+# Delete game
 @app.route('/game/<int:game_id>', methods=['DELETE'])
 def delete_game(game_id):
     if manager.delete_game(game_id):
@@ -86,7 +87,7 @@ def create_igame(game_id):
 
     return jsonify({'message': 'nok'}), 500
 
-# get all igames
+# Get all igames
 @app.route("/igame", methods=['GET'])
 def get_igames():
     igames = manager.get_all_igames()
@@ -95,6 +96,7 @@ def get_igames():
     else:
         return jsonify({'message': 'nok'}), 500
 
+# Get a igame
 @app.route('/igame/<int:igame_id>', methods=['GET'])
 def get_igame(igame_id):
     igame = manager.find_igame_by_id(igame_id)
@@ -103,6 +105,7 @@ def get_igame(igame_id):
     else:
         return jsonify({'message': 'nok'}), 404
 
+ # Delete a igame
 @app.route('/igame/<int:igame_id>', methods=['DELETE'])
 def delete_igame(igame_id):
     if manager.delete_igame(igame_id):
@@ -110,7 +113,7 @@ def delete_igame(igame_id):
     else:
         return jsonify({'message': 'nok'}), 500
     
-# Create a new team
+# Create a team
 @app.route('/igame/<int:igame_id>/team', methods=['POST'])
 def create_team(igame_id):
     data = request.json
@@ -118,11 +121,11 @@ def create_team(igame_id):
     name = data.get('name')
     if name and name != "":
         team = manager.create_team(igame_id, name)
-        return jsonify({'message': f'Team "{team.name}" created successfully!'}), 201
+        return jsonify({ 'id': team.id, 'message': f'Team "{team.name}" created successfully!'}), 201
     else:
         return jsonify({'message': 'nok'}), 404
 
-# Delete Team
+# Delete a team
 @app.route('/igame/<int:igame_id>/team/<int:team_id>', methods=['DELETE'])
 def delete_team(igame_id, team_id):
     igame = manager.delete_team(igame_id, team_id)
@@ -142,7 +145,7 @@ def join_team(igame_id, team_id):
 
     return jsonify({'message': 'nok'}), 500
 
-# update color
+# Update team color
 @app.route('/team/<int:team_id>/color', methods=['PATCH'])
 def udpate_color_team(team_id):
     team = manager.update_team_color(team_id)
@@ -155,9 +158,9 @@ def add_team_member():
     team_id = data.get('team_id')
     name = data.get('name')
     member = manager.add_team_member(team_id, name)
-    return jsonify({'message': f'Member "{member.name}" added successfully to the team!'}), 201
+    return jsonify({ 'id': member.id, 'message': f'Member "{member.name}" added successfully to the team!'}), 201
 
-# Update team member location
+# Update player location
 @app.route('/player/<int:player_id>', methods=['PATCH'])
 def update_team_member_location(player_id):
     data = request.json
@@ -168,7 +171,7 @@ def update_team_member_location(player_id):
     manager.update_team_member_location(player_id, member_pass, latitude, longitude, altitude)
     return jsonify({'message': f'Team member location updated successfully!'}), 200
 
-# Create a new cylinder
+# Create a cylinder
 @app.route('/cylinder/create', methods=['POST'])
 def create_cylinder():
     data = request.json
@@ -181,4 +184,5 @@ def create_cylinder():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5066))
+    app.run(debug=True, host='0.0.0.0', port=port)
