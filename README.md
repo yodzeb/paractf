@@ -82,6 +82,17 @@ NGINX configured for serving
 
 This works fine.
 
+### Docker
+#### Installation
+Go to: https://docs.docker.com/get-docker/
+#### Build Image
+` docker image build -t paractf . `
+#### Run
+` docker run -p 5066:5066 -d paractf `
+
+### Start app
+Open your browser with this URL: http://localhost:5066/static/games.html
+
 ### Note
 Most of the code was produced by ChatGPT.
 
@@ -94,4 +105,3 @@ Most of the code was produced by ChatGPT.
 - position caching (+timestamp) when server (or data network !) is unavailable for a while
 - client's data is very much trusted, for pure game data but also for the technical stuff. As i'm not an expert in SQLalchemy but that raises a couple of security issues to me.
 - Improve Member auto-naming
-- Dockerfile to facilitate the deployments for the backend
